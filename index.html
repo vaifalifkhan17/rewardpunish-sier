@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reward & Punishment</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <div class="brand-mark">
+        <span>7</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="user"></span>
+        <span>My Data</span>
+      </button>
+
+      <p class="nav-heading">Performance Management</p>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="bar-chart"></span>
+        <span>KPI</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="file-text"></span>
+        <span>BA360</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="book"></span>
+        <span>Learning Agility</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="list"></span>
+        <span>Daily Performance</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+
+      <p class="nav-heading">Talent Management System</p>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="clipboard"></span>
+        <span>Assessment</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+
+      <p class="nav-heading">Learning & Development</p>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="settings"></span>
+        <span>Master Data</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="calendar"></span>
+        <span>Training Request</span>
+      </button>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="edit"></span>
+        <span>Training Assignment</span>
+      </button>
+
+      <p class="nav-heading">Reward & Punishment</p>
+      <button class="nav-item active" type="button" data-section="dashboard">
+        <span class="nav-ico" data-icon="trophy"></span>
+        <span>Reward & Punishment</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+      <div class="submenu reward-submenu">
+        <button class="sub-item sub-parent active" type="button" data-group="masterData">
+          <span class="sub-ico" data-icon="settings"></span>
+          <span>Master Data</span>
+          <span class="sub-chevron" data-icon="chevron-down"></span>
+        </button>
+        <div class="submenu-nested">
+          <button class="sub-item nested" type="button" data-section="category">
+            <span class="sub-ico" data-icon="grid"></span>
+            <span>Category</span>
+          </button>
+          <button class="sub-item nested" type="button" data-section="criteria">
+            <span class="sub-ico" data-icon="file-text"></span>
+            <span>Criteria</span>
+          </button>
+          <button class="sub-item nested" type="button" data-section="point">
+            <span class="sub-ico" data-icon="list"></span>
+            <span>Point</span>
+          </button>
+          <button class="sub-item nested" type="button" data-section="period">
+            <span class="sub-ico" data-icon="calendar"></span>
+            <span>Period</span>
+          </button>
+        </div>
+        <button class="sub-item root" type="button" data-section="verification">
+          <span class="sub-ico" data-icon="clipboard"></span>
+          <span>Process</span>
+        </button>
+        <button class="sub-item root" type="button" data-section="assessment">
+          <span class="sub-ico" data-icon="edit"></span>
+          <span>Result</span>
+        </button>
+        <button class="sub-item sub-parent" type="button" data-group="employeeData">
+          <span class="sub-ico" data-icon="user-circle"></span>
+          <span>Employee</span>
+          <span class="sub-chevron" data-icon="chevron-down"></span>
+        </button>
+        <div class="submenu-nested">
+          <button class="sub-item nested" type="button" data-section="employeeProcess">
+            <span class="sub-ico" data-icon="clipboard"></span>
+            <span>Process</span>
+          </button>
+          <button class="sub-item nested" type="button" data-section="employeeResult">
+            <span class="sub-ico" data-icon="edit"></span>
+            <span>Result</span>
+          </button>
+        </div>
+      </div>
+
+      <p class="nav-heading">Service</p>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="gauge"></span>
+        <span>Dashboard Service</span>
+      </button>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="grid"></span>
+        <span>Leave Management</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+      <button class="nav-item muted" type="button">
+        <span class="nav-ico" data-icon="clock"></span>
+        <span>Overtime</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+    </nav>
+  </aside>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <button class="icon-button" type="button" aria-label="Toggle sidebar" title="Toggle sidebar">
+        <span data-icon="menu"></span>
+      </button>
+      <div class="top-actions">
+        <div class="role-chip">
+          <span data-icon="user-circle"></span>
+          <span>SUPER ADMIN</span>
+        </div>
+        <button class="icon-button" type="button" aria-label="Theme" title="Theme">
+          <span data-icon="moon"></span>
+        </button>
+        <button class="icon-button has-badge" type="button" aria-label="Notifications" title="Notifications">
+          <span data-icon="bell"></span>
+          <b>5</b>
+        </button>
+        <div class="profile">
+          <div class="avatar">7</div>
+          <div>
+            <strong>Roki Syah Al Zarkasi</strong>
+            <small>SUPER ADMIN</small>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="subbar">
+      <button class="back-link" type="button" id="backButton">
+        <span data-icon="arrow-left"></span>
+        <span>Back</span>
+      </button>
+      <div class="breadcrumb" id="breadcrumb"></div>
+    </div>
+
+    <section class="page" id="app"></section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="drawer-host" id="drawerHost" aria-hidden="true"></div>
+  <div class="modal-host" id="modalHost" aria-hidden="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
