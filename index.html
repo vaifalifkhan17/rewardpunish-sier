@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Reward & Punishment</title>
+  <title>SPPD Perjalanan Dinas</title>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,14 +68,47 @@
         <span>Training Assignment</span>
       </button>
 
+      <p class="nav-heading">SPPD</p>
+      <button class="nav-item active" type="button" data-section="sppdRequestList">
+        <span class="nav-ico" data-icon="clipboard"></span>
+        <span>SPPD</span>
+        <span class="chevron" data-icon="chevron-right"></span>
+      </button>
+      <div class="submenu sppd-submenu">
+        <button class="sub-item root" type="button" data-section="sppdDashboard">
+          <span class="sub-ico" data-icon="bar-chart"></span>
+          <span>Dashboard</span>
+        </button>
+        <button class="sub-item root active" type="button" data-section="sppdRequestList">
+          <span class="sub-ico" data-icon="clipboard"></span>
+          <span>All Request</span>
+        </button>
+        <button class="sub-item sub-parent" type="button" data-group="sppdMasterData">
+          <span class="sub-ico" data-icon="settings"></span>
+          <span>Master SPPD</span>
+          <span class="chevron" data-icon="chevron-right"></span>
+        </button>
+        <div class="submenu-nested">
+          <button class="sub-item nested" type="button" data-section="sppdMaster" data-master-type="Agenda Type">
+            <span>Agenda Type</span>
+          </button>
+          <button class="sub-item nested" type="button" data-section="sppdMaster" data-master-type="Destination">
+            <span>Destination</span>
+          </button>
+          <button class="sub-item nested" type="button" data-section="sppdMaster" data-master-type="Allowance Rate">
+            <span>Allowance Rate</span>
+          </button>
+        </div>
+      </div>
+
       <p class="nav-heading">Reward & Punishment</p>
-      <button class="nav-item active" type="button" data-section="dashboard">
+      <button class="nav-item muted" type="button" data-section="dashboard">
         <span class="nav-ico" data-icon="trophy"></span>
         <span>Reward & Punishment</span>
         <span class="chevron" data-icon="chevron-right"></span>
       </button>
       <div class="submenu reward-submenu">
-        <button class="sub-item sub-parent active" type="button" data-group="masterData">
+        <button class="sub-item sub-parent" type="button" data-group="masterData">
           <span class="sub-ico" data-icon="settings"></span>
           <span>Master Data</span>
           <span class="sub-chevron" data-icon="chevron-down"></span>
@@ -138,6 +171,7 @@
         <span>Overtime</span>
         <span class="chevron" data-icon="chevron-right"></span>
       </button>
+
     </nav>
   </aside>
 
@@ -186,3 +220,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+
