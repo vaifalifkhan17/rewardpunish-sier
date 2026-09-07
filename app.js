@@ -1790,16 +1790,26 @@ function renderSppdTransactions(completed = false) {
         ${sppdMetricCard("Approval", approved, "Approved")}
         ${sppdMetricCard("Payment", payment, "Menunggu payment")}
       </div>
-      ${completed ? "" : renderSppdTransactionTabs()}
       ${renderSppdRequestList(completed ? "sppdCompletedList" : "sppdRequestList")}
     </div>
   `;
 }
 
 function sppdMetricCard(label, value, note) {
+  const metricIcons = {
+    Request: "clipboard",
+    Submitted: "send",
+    Verification: "eye",
+    Approval: "check",
+    Payment: "download"
+  };
+
   return `
     <div class="sppd-metric-card">
-      <span>${escapeHtml(label)}</span>
+      <div class="sppd-metric-card-head">
+        <span>${escapeHtml(label)}</span>
+        <span class="sppd-metric-icon" aria-hidden="true">${icon(metricIcons[label] || "clipboard")}</span>
+      </div>
       <strong>${escapeHtml(value)}</strong>
       <small>${escapeHtml(note)}</small>
     </div>
@@ -2792,7 +2802,7 @@ function renderSppdFlowPanel(activeStage = "Request") {
 
 function renderSppdRequestList(section, compact = false) {
   const baseRows = section === "sppdRequestList" ? getSppdAllRequestRows() : getSppdRowsForSection(section);
-  const rows = section === "sppdRequestList" ? getSppdTabbedRows(baseRows, section) : baseRows;
+  const rows = baseRows;
   const filtered = filterRows(rows, section, tableSearchKeys(section));
   const page = getPaged(filtered, section, compact ? 5 : null);
 
@@ -5024,16 +5034,17 @@ function renderToolbar(section, sourceRows = getFilterSourceRows(section)) {
   const filters = renderTableFilters(section, sourceRows);
 
   return `
-    <div class="toolbar">
+    <div class="toolbar ${section.startsWith("sppd") ? "filters-collapsed" : ""}">
       <div class="toolbar-main">
         <div class="toolbar-left">
           <label class="field-inline">
             <select class="select-sm page-size-select" data-action="per-page" data-section="${section}">
               ${[10, 25, 50].map((value) => `<option value="${value}" ${appState.perPage[section] === value ? "selected" : ""}>${value}</option>`).join("")}
             </select>
-            <span>records per page</span>
+            <span>${section.startsWith("sppd") ? "entries" : "records per page"}</span>
           </label>
         </div>
+        ${filters && section.startsWith("sppd") ? `<button class="toolbar-filter-toggle" type="button" data-action="toggle-table-filters" aria-expanded="false">Filter</button>` : ""}
         <div class="toolbar-right">
           <label class="searchbox">
             <span data-icon="search"></span>
@@ -5041,7 +5052,7 @@ function renderToolbar(section, sourceRows = getFilterSourceRows(section)) {
           </label>
         </div>
       </div>
-      ${filters ? `<div class="toolbar-filter-row"><span>Filter</span>${filters}</div>` : ""}
+      ${filters ? `<div class="toolbar-filter-row"><span>Filter</span>${filters}${section.startsWith("sppd") ? `<button class="toolbar-reset" type="button" data-action="reset-table-filters" data-section="${section}">${icon("x")} Reset Filter</button>` : ""}</div>` : ""}
     </div>
   `;
 }
@@ -8512,6 +8523,13 @@ document.addEventListener("click", (event) => {
   if (!target) return;
 
   const action = target.dataset.action;
+  if (action === "toggle-table-filters") {
+    const toolbar = target.closest(".toolbar");
+    const isCollapsed = toolbar.classList.toggle("filters-collapsed");
+    target.setAttribute("aria-expanded", String(!isCollapsed));
+    return;
+  }
+
   if (action === "go-section") {
     if (target.dataset.section === "verification" && !canViewProcess()) {
       showToast("Process tidak tersedia untuk role ini.");
@@ -9144,6 +9162,14 @@ document.addEventListener("change", (event) => {
   if (target.dataset.action === "table-filter") {
     const section = target.dataset.section;
     appState.filters[section][target.dataset.filter] = target.value;
+    appState.page[section] = 1;
+    clearSelection(section);
+    render();
+  }
+
+  if (target.dataset.action === "reset-table-filters") {
+    const section = target.dataset.section;
+    appState.filters[section] = {};
     appState.page[section] = 1;
     clearSelection(section);
     render();
