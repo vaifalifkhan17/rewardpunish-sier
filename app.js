@@ -1,5 +1,7 @@
 const icons = {
   "arrow-left": '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  "arrow-up": '<path d="m18 15-6-6-6 6"/><path d="M12 9v12"/>',
+  "arrow-down": '<path d="m6 9 6 6 6-6"/><path d="M12 3v12"/>',
   "bar-chart": '<path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-3"/>',
   bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/>',
@@ -96,6 +98,11 @@ const appState = {
   pendingDelete: null,
   pointDraft: null,
   focusSearch: null,
+  tableFiltersExpanded: {},
+  tableSort: {
+    sppdRequestList: { key: "docNo", direction: "asc" },
+    sppdCompletedList: { key: "docNo", direction: "asc" }
+  },
   myRewardQuestion: 0,
   processTab: "input",
   dashboardPeriodId: "RNP-2026",
@@ -1667,7 +1674,7 @@ function titleForSection(section) {
     employeeProcess: "Process",
     employeeResult: "Result",
     dashboard: "Reward & Punishment",
-    sppdDashboard: "SPPD Dashboard",
+    sppdDashboard: "Travel Request (SPPD) Dashboard",
     sppdRequestList: "All Request",
     sppdCompletedList: "Completed",
     sppdRequest: "Request",
@@ -1685,7 +1692,7 @@ function titleForSection(section) {
 }
 
 function groupForSection(section) {
-  if (isSppdSection(section)) return "SPPD";
+  if (isSppdSection(section)) return "Travel Request (SPPD)";
   if (["category", "criteria", "point", "period"].includes(section)) return "Master Data";
   if (["verification", "assessment"].includes(section)) return "Reward";
   if (["employeeProcess", "employeeResult"].includes(section)) return "Employee";
@@ -1778,7 +1785,7 @@ function renderSppdTransactions(completed = false) {
     <div class="page-grid sppd-page">
       <div class="panel sppd-hero">
         <div>
-          <h2>${completed ? "SPPD - Completed" : "SPPD - All Request"}</h2>
+          <h2>${completed ? "Travel Request (SPPD) - Completed" : "Travel Request (SPPD) - All Request"}</h2>
           <small class="panel-kicker">${completed ? "Arsip dokumen SPPD yang sudah completed." : "Pusat monitoring seluruh dokumen perjalanan dinas."}</small>
         </div>
         ${completed ? "" : `<button class="btn success" type="button" data-action="sppd-new">${icon("plus")} Create SPPD</button>`}
@@ -1805,7 +1812,7 @@ function sppdMetricCard(label, value, note) {
   };
 
   return `
-    <div class="sppd-metric-card">
+    <div class="sppd-metric-card metric-${escapeHtml(label.toLowerCase())}">
       <div class="sppd-metric-card-head">
         <span>${escapeHtml(label)}</span>
         <span class="sppd-metric-icon" aria-hidden="true">${icon(metricIcons[label] || "clipboard")}</span>
@@ -1829,19 +1836,23 @@ function renderSppdDocumentPage() {
 
   return `
     <div class="page-grid sppd-document-page">
-      <div class="panel sppd-document-page-head">
-        <div>
-          <small>Dokumen SPPD</small>
-          <h2>${escapeHtml(item.docNo)}</h2>
-          <p>${escapeHtml(item.agendaName)} - ${escapeHtml(getSppdMainDestination(item))}</p>
+      <div class="panel sppd-document-summary">
+        <div class="sppd-document-page-head">
+          <div>
+            <small>Dokumen SPPD</small>
+            <h2>${escapeHtml(item.docNo)}</h2>
+            <p>${escapeHtml(item.agendaName)} - ${escapeHtml(getSppdMainDestination(item))}</p>
+          </div>
+          <div class="sppd-document-status">
+            ${sppdStagePill(item)}
+            ${statusPill(getSppdStatus(item))}
+          </div>
         </div>
-        <div class="sppd-document-status">
-          ${sppdStagePill(item)}
-          ${statusPill(getSppdStatus(item))}
+        <div class="sppd-document-progress">
+          ${renderSppdEmployeeStepper(item)}
         </div>
+        ${renderSppdDetailTabs(item, activeTab)}
       </div>
-      <div class="panel sppd-step-panel"><div class="panel-body">${renderSppdEmployeeStepper(item)}</div></div>
-      ${renderSppdDetailTabs(item, activeTab)}
       ${renderSppdDetailTabContent(item, activeTab)}
       ${footerAction ? `<div class="sppd-document-footer">${footerAction}</div>` : ""}
     </div>
@@ -1933,7 +1944,7 @@ function renderSppdDetailTabContent(item, activeTab) {
   if (activeTab === "Payment") return renderSppdPaymentTabView(item);
   if (activeTab === "Letter Assignment") return renderSppdLetterAssignmentTabView(item);
   if (activeTab === "Employee") return getSppdStatus(item) === "Completed" ? renderSppdCompletedEmployeePanel(item) : renderSppdEmployeeTablePanel(item);
-  if (activeTab === "Other Allowance") return `<div class="panel"><div class="panel-body">${renderSppdOtherAllowanceTab(item)}</div></div>`;
+  if (activeTab === "Other Allowance") return renderSppdOtherAllowanceTabView(item);
   if (activeTab === "Documents") return renderSppdDocumentsPanel(item);
   if (activeTab === "History") return renderSppdHistoryPanel(item);
   return renderSppdOverviewStageView(item);
@@ -2068,7 +2079,6 @@ function renderSppdApprovalTabView(item) {
         <div><h2>Approval</h2><small class="panel-kicker">Approval berurutan dari level rendah sampai atasan terakhir.</small></div>
         <div class="panel-actions">
           <button class="btn neutral" type="button" data-action="sppd-approval-setting" data-id="${escapeHtml(item.id)}">${icon("settings")} Setting Approval</button>
-          <button class="btn success" type="button" data-action="sppd-email-notification" data-id="${escapeHtml(item.id)}">${icon("send")} Kirim Email</button>
         </div>
       </div>
       <div class="panel-body sppd-stage-view">
@@ -2093,7 +2103,10 @@ function renderSppdPaymentTabView(item) {
 function renderSppdLetterAssignmentTabView(item) {
   return `
     <div class="panel sppd-stage-view-panel">
-      <div class="panel-header"><div><h2>Letter Assignment</h2><small class="panel-kicker">Generate, upload, preview, dan download surat tugas.</small></div></div>
+      <div class="panel-header">
+        <div><h2>Letter Assignment</h2><small class="panel-kicker">Generate, upload, preview, dan download surat tugas.</small></div>
+        <button class="btn primary" type="button" data-action="sppd-letter-edit" data-id="${escapeHtml(item.id)}">${icon("file-text")} Buat Surat</button>
+      </div>
       <div class="panel-body sppd-stage-view">
         ${renderSppdLetterAssignmentTable(item)}
       </div>
@@ -2296,49 +2309,6 @@ function renderSppdApprovalSettingDrawer() {
   `;
 }
 
-function openSppdEmailNotificationModal(id) {
-  appState.modal = { type: "sppdEmailNotification", id };
-  renderModal();
-}
-
-function renderSppdEmailNotificationModal() {
-  const item = findSppdRequest(appState.modal?.id);
-  if (!item) return "";
-  return `
-    <form class="modal small-modal" id="sppdEmailNotificationForm" role="dialog" aria-modal="true">
-      <div class="modal-header">
-        <div>
-          <h3>Kirim Email Notification</h3>
-          <small class="modal-kicker">${escapeHtml(item.docNo)} - ${escapeHtml(item.agendaName || "-")}</small>
-        </div>
-        <button class="icon-button" type="button" aria-label="Close" data-action="close-modal">${icon("x")}</button>
-      </div>
-      <div class="modal-body sppd-email-modal-body">
-        <div class="sppd-email-field">
-          <label>Tujuan</label>
-          <div class="checkbox-stack">
-            <label><input type="checkbox" name="emailTarget" value="UMP" checked> UMP</label>
-            <label><input type="checkbox" name="emailTarget" value="SDM" checked> SDM</label>
-            <label><input type="checkbox" name="emailTarget" value="PIC"> PIC / Requester</label>
-          </div>
-        </div>
-        <div class="sppd-email-field">
-          <label>Additional Email</label>
-          <input name="additionalEmail" placeholder="email tambahan, pisahkan dengan koma">
-        </div>
-        <div class="sppd-email-field">
-          <label>Message</label>
-          <textarea name="emailMessage">Approval selesai. Mohon proses Payment dan Letter Assignment.</textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn neutral" type="button" data-action="close-modal">Cancel</button>
-        <button class="btn success" type="submit" data-action="send-sppd-email-notification" data-id="${escapeHtml(item.id)}">Kirim Email</button>
-      </div>
-    </form>
-  `;
-}
-
 function openSppdApproverPickerModal(id, index) {
   appState.modal = { type: "sppdApproverPicker", id, index: Number(index || 0) };
   renderModal();
@@ -2442,30 +2412,6 @@ function saveSppdApprovalSetting(id) {
   render();
 }
 
-function sendSppdEmailNotification(id) {
-  const item = findSppdRequest(id);
-  const form = document.getElementById("sppdEmailNotificationForm");
-  if (!item || !form) return;
-  const formData = new FormData(form);
-  const targets = formData.getAll("emailTarget");
-  const additional = String(formData.get("additionalEmail") || "").trim();
-  const recipients = [...targets, ...(additional ? additional.split(",").map((value) => value.trim()).filter(Boolean) : [])];
-  if (!recipients.length) {
-    showToast("Pilih minimal satu tujuan email.");
-    return;
-  }
-  item.emailNotifications = item.emailNotifications || [];
-  item.emailNotifications.push({
-    recipients,
-    message: String(formData.get("emailMessage") || ""),
-    date: todayIso()
-  });
-  appState.modal = null;
-  renderModal();
-  showToast(`Email notification sent to ${recipients.join(", ")}.`);
-  render();
-}
-
 function renderSppdApprovalTrackTable(item) {
   const approved = item.status === "Approved" || item.paymentStatus === "Paid";
   const activeRows = getSppdApprovalFlow(item).filter((row) => row.active);
@@ -2476,9 +2422,6 @@ function renderSppdApprovalTrackTable(item) {
     approved ? item.updatedAt || todayIso() : "-",
     approved ? "Disetujui." : "-"
   ]);
-  (item.emailNotifications || []).forEach((notification) => {
-    rows.push(["Email Notification", notification.recipients.join(", "), "Sent", notification.date || todayIso(), notification.message || "Approval selesai, notifikasi dikirim."]);
-  });
   return `
     <div class="sppd-review-section">
       <h4>Approval Track</h4>
@@ -2610,7 +2553,8 @@ function renderSppdDashboard() {
 function renderSppdQueue(section) {
   const rows = getSppdRowsForSection(section);
   const filtered = filterRows(rows, section, tableSearchKeys(section));
-  const page = getPaged(filtered, section);
+  const sorted = sortSppdTableRows(filtered, section);
+  const page = getPaged(sorted, section);
   const actionLabel = section === "sppdVerification" ? "Start Verification" : section === "sppdApproval" ? "Review Approval" : "Process Payment";
 
   return `
@@ -2624,7 +2568,7 @@ function renderSppdQueue(section) {
       <div class="panel sppd-table-panel">
         <div class="panel-body">
           ${renderToolbar(section, rows)}
-          ${renderSppdMonitoringTable(page.rows, section, false, actionLabel)}
+          ${renderSppdMonitoringTable(page.rows, section, false, actionLabel, page.start)}
           ${renderPagination(page, section)}
         </div>
       </div>
@@ -2632,8 +2576,8 @@ function renderSppdQueue(section) {
   `;
 }
 
-function renderSppdMonitoringTable(rows, section, compact = false, actionLabel = "View Detail") {
-  if (section === "sppdRequestList") return renderSppdAllRequestTable(rows, actionLabel);
+function renderSppdMonitoringTable(rows, section, compact = false, actionLabel = "View Detail", rowOffset = 0) {
+  if (["sppdRequestList", "sppdCompletedList"].includes(section)) return renderSppdAllRequestTable(rows, actionLabel, rowOffset, section);
   return `
     <div class="table-wrap">
       <table class="sppd-data-table sppd-document-table">
@@ -2672,28 +2616,31 @@ function renderSppdMonitoringTable(rows, section, compact = false, actionLabel =
   `;
 }
 
-function renderSppdAllRequestTable(rows, actionLabel = "View Detail") {
+function renderSppdAllRequestTable(rows, actionLabel = "View Detail", rowOffset = 0, section = "sppdRequestList") {
+  const columns = [
+    { key: "docNo", label: "No & Request Date" },
+    { key: "requesterName", label: "PIC" },
+    { key: "division", label: "Division" },
+    { key: "participants", label: "Participants" },
+    { key: "destination", label: "Destination" },
+    { key: "assignmentPeriod", label: "Assignment Period" },
+    { key: "status", label: "Status" }
+  ];
   return `
     <div class="table-wrap">
       <table class="sppd-data-table sppd-document-table sppd-all-request-table">
         <thead>
           <tr>
-            <th>SPPD Number</th>
-            <th>Request Date</th>
-            <th>PIC</th>
-            <th>Division</th>
-            <th>Participants</th>
-            <th>Destination</th>
-            <th>Assignment Period</th>
-            <th>Status</th>
+            <th class="center no-col">No.</th>
+            ${columns.map((column) => renderSppdSortHeader(column.key, column.label, section)).join("")}
             <th class="center">Action</th>
           </tr>
         </thead>
         <tbody>
-          ${rows.map((item) => `
+          ${rows.map((item, index) => `
             <tr>
-              <td><strong>${escapeHtml(item.docNo)}</strong></td>
-              <td>${escapeHtml(item.requestDate || item.sppdDate || "-")}</td>
+              <td class="center no-col">${rowOffset + index + 1}</td>
+              <td><strong>${escapeHtml(item.docNo)}</strong><small>${escapeHtml(item.requestDate || item.sppdDate || "-")}</small></td>
               <td><strong>${escapeHtml(item.requesterName || "-")}</strong><small>${escapeHtml(item.requesterPosition || "PIC / Requester")}</small></td>
               <td>${escapeHtml(item.division || item.requesterDivision || "-")}</td>
               <td>${escapeHtml(item.participantsText || getSppdParticipantCount(item))}</td>
@@ -2702,8 +2649,8 @@ function renderSppdAllRequestTable(rows, actionLabel = "View Detail") {
               <td>${sppdStatusPill(item.readableStatus || getSppdStatus(item))}</td>
               <td class="center">
                 <span class="table-actions">
-                  <button class="action-icon action-view" type="button" title="${escapeHtml(actionLabel)}" aria-label="${escapeHtml(actionLabel)}" data-action="detail" data-section="sppdRequestList" data-id="${escapeHtml(item.id)}">${icon("eye")}</button>
-                  ${(item.readableStatus || item.status) === "Draft" ? `<button class="action-icon action-edit" type="button" title="Edit Draft" aria-label="Edit Draft" data-action="edit" data-section="sppdRequestList" data-id="${escapeHtml(item.id)}">${icon("edit")}</button>` : ""}
+                  <button class="action-icon action-view" type="button" title="${escapeHtml(actionLabel)}" aria-label="${escapeHtml(actionLabel)}" data-action="detail" data-section="${escapeHtml(section)}" data-id="${escapeHtml(item.id)}">${icon("eye")}</button>
+                  ${section === "sppdRequestList" && (item.readableStatus || item.status) === "Draft" ? `<button class="action-icon action-edit" type="button" title="Edit Draft" aria-label="Edit Draft" data-action="edit" data-section="sppdRequestList" data-id="${escapeHtml(item.id)}">${icon("edit")}</button>` : ""}
                 </span>
               </td>
             </tr>
@@ -2804,19 +2751,20 @@ function renderSppdRequestList(section, compact = false) {
   const baseRows = section === "sppdRequestList" ? getSppdAllRequestRows() : getSppdRowsForSection(section);
   const rows = baseRows;
   const filtered = filterRows(rows, section, tableSearchKeys(section));
-  const page = getPaged(filtered, section, compact ? 5 : null);
+  const sorted = sortSppdTableRows(filtered, section);
+  const page = getPaged(sorted, section, compact ? 5 : null);
 
   return `
     <div class="panel sppd-table-panel">
-      <div class="panel-header">
+      ${["sppdRequestList", "sppdCompletedList"].includes(section) ? "" : `<div class="panel-header">
         <div>
-          <h2>${section === "sppdRequestList" ? "All Request" : ["sppdDashboard"].includes(section) ? "List SPPD" : escapeHtml(titleForSection(section))}</h2>
+          <h2>${["sppdDashboard"].includes(section) ? "List Travel Request" : escapeHtml(titleForSection(section))}</h2>
           <small class="panel-kicker">${escapeHtml(sppdSubtitle(section))}</small>
         </div>
-      </div>
+      </div>`}
       <div class="panel-body">
         ${renderToolbar(section, rows)}
-        ${renderSppdMonitoringTable(page.rows, section)}
+        ${renderSppdMonitoringTable(page.rows, section, false, "View Detail", page.start)}
         ${renderPagination(page, section)}
       </div>
     </div>
@@ -5034,7 +4982,7 @@ function renderToolbar(section, sourceRows = getFilterSourceRows(section)) {
   const filters = renderTableFilters(section, sourceRows);
 
   return `
-    <div class="toolbar ${section.startsWith("sppd") ? "filters-collapsed" : ""}">
+    <div class="toolbar ${section.startsWith("sppd") && !appState.tableFiltersExpanded[section] ? "filters-collapsed" : ""}">
       <div class="toolbar-main">
         <div class="toolbar-left">
           <label class="field-inline">
@@ -5044,7 +4992,7 @@ function renderToolbar(section, sourceRows = getFilterSourceRows(section)) {
             <span>${section.startsWith("sppd") ? "entries" : "records per page"}</span>
           </label>
         </div>
-        ${filters && section.startsWith("sppd") ? `<button class="toolbar-filter-toggle" type="button" data-action="toggle-table-filters" aria-expanded="false">Filter</button>` : ""}
+        ${filters && section.startsWith("sppd") ? `<button class="toolbar-filter-toggle" type="button" data-action="toggle-table-filters" data-section="${section}" aria-expanded="${Boolean(appState.tableFiltersExpanded[section])}">Filter</button>` : ""}
         <div class="toolbar-right">
           <label class="searchbox">
             <span data-icon="search"></span>
@@ -5065,6 +5013,14 @@ function renderTableFilters(section, rows) {
     <div class="table-filters">
       ${filters.map(({ key, label }) => {
         const selected = appState.filters[section]?.[key] || "";
+        if (key === "requestDate") {
+          return `
+            <label class="table-filter table-filter-date">
+              <span>${escapeHtml(label)}</span>
+              <input type="date" value="${escapeHtml(selected)}" data-action="table-filter" data-section="${section}" data-filter="${escapeHtml(key)}">
+            </label>
+          `;
+        }
         const options = uniqueOptions(rows, key);
         return `
           <label class="table-filter">
@@ -5078,6 +5034,39 @@ function renderTableFilters(section, rows) {
       }).join("")}
     </div>
   `;
+}
+
+function renderSppdSortHeader(key, label, section = "sppdRequestList") {
+  const sort = appState.tableSort[section] || {};
+  const active = sort.key === key;
+  return `
+    <th>
+      <button class="sppd-sort-header ${active ? "active" : ""}" type="button" data-action="sppd-table-sort" data-section="${escapeHtml(section)}" data-sort-key="${escapeHtml(key)}">
+        <span>${escapeHtml(label)}</span>
+        <span class="sppd-sort-arrows" aria-label="${active ? `Urutan ${sort.direction === "asc" ? "menaik" : "menurun"}` : "Urutkan kolom"}">
+          <i class="${active && sort.direction === "asc" ? "active" : ""}">${icon("arrow-up")}</i>
+          <i class="${active && sort.direction === "desc" ? "active" : ""}">${icon("arrow-down")}</i>
+        </span>
+      </button>
+    </th>
+  `;
+}
+
+function sortSppdTableRows(rows, section) {
+  if (!["sppdRequestList", "sppdCompletedList"].includes(section)) return rows;
+  const sort = appState.tableSort[section] || { key: "docNo", direction: "asc" };
+  const valueFor = (item) => ({
+    docNo: item.docNo,
+    requestDate: item.requestDate || item.sppdDate,
+    requesterName: item.requesterName,
+    division: item.division || item.requesterDivision,
+    participants: Number(item.participantsText || getSppdParticipantCount(item)),
+    destination: item.destinationText || getSppdMainDestination(item),
+    assignmentPeriod: item.assignmentStartDate || item.sppdDate,
+    status: item.readableStatus || getSppdStatus(item)
+  })[sort.key];
+  const direction = sort.direction === "desc" ? -1 : 1;
+  return [...rows].sort((a, b) => String(valueFor(a) ?? "").localeCompare(String(valueFor(b) ?? ""), undefined, { numeric: true }) * direction);
 }
 
 function uniqueOptions(rows, key) {
@@ -6911,15 +6900,15 @@ function renderSppdPicPickerField(employee, item) {
   const value = employee?.id || item.requesterEmployeeId || "";
   const subtitle = employee
     ? `${employee.nik} - ${employee.position} / ${employee.division}`
-    : "Belum memilih PIC dari HCMS Employee Reference";
+    : "PIC otomatis mengikuti user yang sedang login";
   return `
     <input type="hidden" name="requesterEmployeeId" value="${escapeHtml(value)}">
-    <div class="sppd-reference-picker">
+    <div class="sppd-reference-picker sppd-reference-picker-auto">
       <div>
-        <strong>${escapeHtml(employee?.name || item.requesterName || "Pilih PIC / Requester")}</strong>
+        <strong>${escapeHtml(employee?.name || item.requesterName || "PIC tidak ditemukan")}</strong>
         <small>${escapeHtml(subtitle)}</small>
       </div>
-      <button class="btn neutral" type="button" data-action="sppd-pick-pic">${icon("search")} Pilih PIC</button>
+      ${statusPill("Auto")}
     </div>
   `;
 }
@@ -7850,14 +7839,38 @@ function renderSppdOtherAllowanceTab(item) {
         <h3>Other Allowance</h3>
         <button class="btn neutral" type="button" data-action="sppd-other-new">${icon("plus")} Add Allowance</button>
       </div>
-      <div class="table-wrap">
-        <table class="sppd-data-table">
-          <thead><tr><th>Type</th><th>Requester</th><th>Amount</th><th>Status</th><th>Transfer</th><th>Proof</th></tr></thead>
-          <tbody>
-            ${rows.map((row) => `<tr><td>${escapeHtml(row.type)}</td><td>${escapeHtml(row.requesterName)}</td><td>${formatRupiah(row.amount)}</td><td>${statusPill(row.status)}</td><td>${escapeHtml(row.transferDate || "-")}</td><td>${escapeHtml(row.proof || "-")}</td></tr>`).join("") || emptyRow(6, "Belum ada other allowance.")}
-          </tbody>
-        </table>
+      ${renderSppdOtherAllowanceTable(rows)}
+    </div>
+  `;
+}
+
+function renderSppdOtherAllowanceTabView(item) {
+  const rows = db.sppdOtherAllowances.filter((row) => row.sppdId === item.id);
+  return `
+    <div class="panel sppd-stage-view-panel">
+      <div class="panel-header">
+        <div><h2>Other Allowance</h2><small class="panel-kicker">Biaya tambahan perjalanan di luar allowance utama.</small></div>
+        <button class="btn primary" type="button" data-action="sppd-other-new">${icon("plus")} Add Allowance</button>
       </div>
+      <div class="panel-body sppd-stage-view">
+        <div class="sppd-review-section">
+          <h4>Allowance List</h4>
+          ${renderSppdOtherAllowanceTable(rows)}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSppdOtherAllowanceTable(rows) {
+  return `
+    <div class="table-wrap">
+      <table class="sppd-data-table sppd-other-allowance-table">
+        <thead><tr><th>Type</th><th>Requester</th><th class="money-col">Amount</th><th>Status</th><th>Transfer Date</th><th>Proof</th></tr></thead>
+        <tbody>
+          ${rows.map((row) => `<tr><td><strong>${escapeHtml(row.type)}</strong></td><td>${escapeHtml(row.requesterName)}</td><td class="money-col">${formatRupiah(row.amount)}</td><td class="center">${statusPill(row.status)}</td><td>${escapeHtml(row.transferDate || "-")}</td><td>${escapeHtml(row.proof || "-")}</td></tr>`).join("") || emptyRow(6, "Belum ada other allowance.")}
+        </tbody>
+      </table>
     </div>
   `;
 }
@@ -8221,11 +8234,14 @@ function renderSppdDrawerAction(stage, item, editable) {
 }
 
 function makeEmptySppdRequest() {
+  const requester = getCurrentEmployee();
   return {
     id: "",
     docNo: "Auto",
-    requesterName: "",
-    requesterDivision: "",
+    requesterEmployeeId: requester?.id || "",
+    requesterName: requester?.name || "",
+    requesterDivision: requester?.division || "",
+    requesterPosition: requester?.position || "",
     agendaName: "",
     agendaDate: "",
     agendaTime: "",
@@ -8283,8 +8299,6 @@ function renderModal() {
     modalHost.innerHTML = renderSppdCancelCreateModal();
   } else if (appState.modal.type === "sppdApproverPicker") {
     modalHost.innerHTML = renderSppdApproverPickerModal();
-  } else if (appState.modal.type === "sppdEmailNotification") {
-    modalHost.innerHTML = renderSppdEmailNotificationModal();
   } else if (appState.modal.type === "sppdMaster") {
     modalHost.innerHTML = renderSppdMasterModal();
   } else if (appState.modal.type === "sppdOtherAllowance") {
@@ -8297,6 +8311,8 @@ function renderModal() {
     modalHost.innerHTML = renderSppdEmployeePickerModal();
   } else if (appState.modal.type === "sppdDraftEmployee") {
     modalHost.innerHTML = renderSppdDraftEmployeeModal();
+  } else if (appState.modal.type === "sppdLetterEditor") {
+    modalHost.innerHTML = renderSppdLetterEditorModal();
   } else {
     modalHost.innerHTML = renderRulesModal();
   }
@@ -8524,9 +8540,31 @@ document.addEventListener("click", (event) => {
 
   const action = target.dataset.action;
   if (action === "toggle-table-filters") {
-    const toolbar = target.closest(".toolbar");
-    const isCollapsed = toolbar.classList.toggle("filters-collapsed");
-    target.setAttribute("aria-expanded", String(!isCollapsed));
+    const section = target.dataset.section;
+    appState.tableFiltersExpanded[section] = !appState.tableFiltersExpanded[section];
+    render();
+    return;
+  }
+
+  if (action === "reset-table-filters") {
+    const section = target.dataset.section;
+    appState.filters[section] = {};
+    appState.page[section] = 1;
+    clearSelection(section);
+    render();
+    return;
+  }
+
+  if (action === "sppd-table-sort") {
+    const section = target.dataset.section;
+    const key = target.dataset.sortKey;
+    const current = appState.tableSort[section] || {};
+    appState.tableSort[section] = {
+      key,
+      direction: current.key === key && current.direction === "asc" ? "desc" : "asc"
+    };
+    appState.page[section] = 1;
+    render();
     return;
   }
 
@@ -8728,6 +8766,11 @@ document.addEventListener("click", (event) => {
     updateSppdLetter(target.dataset.id, target.dataset.employeeId, "Created", "Surat tugas dibuat.");
   }
 
+  if (action === "sppd-letter-edit") {
+    openSppdLetterEditor(target.dataset.id);
+    return;
+  }
+
   if (action === "sppd-letter-upload") {
     uploadSppdAssignmentLetter(target.dataset.id);
   }
@@ -8744,11 +8787,6 @@ document.addEventListener("click", (event) => {
 
   if (action === "sppd-select-approver") {
     selectSppdApprover(target.dataset.id, Number(target.dataset.index || 0), target.dataset.employeeId);
-    return;
-  }
-
-  if (action === "sppd-email-notification") {
-    openSppdEmailNotificationModal(target.dataset.id);
     return;
   }
 
@@ -9099,8 +9137,8 @@ document.addEventListener("submit", (event) => {
     saveSppdApprovalSetting(submitter.dataset.id);
   }
 
-  if (submitter.dataset.action === "send-sppd-email-notification") {
-    sendSppdEmailNotification(submitter.dataset.id);
+  if (submitter.dataset.action === "save-sppd-letter") {
+    saveSppdLetterDocument(submitter.dataset.id);
   }
 
   if (submitter.dataset.action === "save-sppd-draft-employee") {
@@ -9162,14 +9200,6 @@ document.addEventListener("change", (event) => {
   if (target.dataset.action === "table-filter") {
     const section = target.dataset.section;
     appState.filters[section][target.dataset.filter] = target.value;
-    appState.page[section] = 1;
-    clearSelection(section);
-    render();
-  }
-
-  if (target.dataset.action === "reset-table-filters") {
-    const section = target.dataset.section;
-    appState.filters[section] = {};
     appState.page[section] = 1;
     clearSelection(section);
     render();
@@ -10309,6 +10339,9 @@ function addSppdAgendaDraftRow() {
   const fallbackLocation = document.querySelector('#sppdDraftEmployeeForm [name="destination"]')?.value || "";
   list.insertAdjacentHTML("beforeend", renderSppdAgendaDraftRow({}, index, fallbackLocation));
   renderIcons(list);
+  const addedRow = list.lastElementChild;
+  addedRow?.scrollIntoView({ behavior: "smooth", block: "start" });
+  addedRow?.querySelector("input, select, textarea")?.focus({ preventScroll: true });
 }
 
 function upsertSppdPrimaryEmployee(item, employeeId, level = "Pelaksana") {
@@ -10742,11 +10775,11 @@ function updateSppdLetter(id, employeeId, status, message) {
   if (status) employee.assignmentLetter = status;
   if (message.includes("Preview")) {
     const win = window.open("", "_blank");
-    win?.document.write(`<pre>${escapeHtml(buildSppdLetterText(item, employee))}</pre>`);
+    win?.document.write(`<pre>${escapeHtml(item.assignmentLetterContent || buildSppdLetterText(item, employee))}</pre>`);
     win?.document.close();
   }
   if (message.includes("download")) {
-    downloadTextFile(`surat-tugas-${employee.nik}.txt`, buildSppdLetterText(item, employee));
+    downloadTextFile(`surat-tugas-${employee.nik}.txt`, item.assignmentLetterContent || buildSppdLetterText(item, employee));
   }
   if (status === "Created" && item.employees.every((row) => row.paymentStatus === "Paid") && item.employees.every((row) => row.assignmentLetter === "Created")) {
     item.paymentStatus = "Paid";
@@ -10775,6 +10808,95 @@ function uploadSppdAssignmentLetter(id) {
   }
   showToast("Surat tugas uploaded.");
   render();
+}
+
+function openSppdLetterEditor(id) {
+  const item = findSppdRequest(id);
+  if (!item) return;
+  appState.modal = { type: "sppdLetterEditor", id };
+  renderModal();
+}
+
+function renderSppdLetterEditorModal() {
+  const item = findSppdRequest(appState.modal?.id);
+  if (!item) return "";
+  const content = item.assignmentLetterContent || buildSppdAssignmentDocument(item);
+  return `
+    <form class="modal sppd-letter-editor-modal" id="sppdLetterEditorForm" role="dialog" aria-modal="true">
+      <div class="modal-header sppd-letter-editor-header">
+        <div>
+          <h3>OnlyOffice Document Editor</h3>
+          <small class="modal-kicker">Surat Tugas ${escapeHtml(item.docNo)}</small>
+        </div>
+        <button class="icon-button" type="button" aria-label="Close" data-action="close-modal">${icon("x")}</button>
+      </div>
+      <div class="sppd-document-toolbar" aria-label="Document toolbar">
+        <button type="button" title="Undo" disabled>${icon("undo")}</button>
+        <button type="button" title="Redo" disabled>${icon("redo")}</button>
+        <span></span>
+        <button type="button" title="Bold" disabled><strong>B</strong></button>
+        <button type="button" title="Italic" disabled><em>I</em></button>
+        <div class="sppd-editor-mode">Editing</div>
+      </div>
+      <div class="modal-body sppd-letter-editor-body">
+        <textarea name="letterContent" class="sppd-letter-page" aria-label="Isi surat tugas">${escapeHtml(content)}</textarea>
+      </div>
+      <div class="modal-footer">
+        <small class="sppd-editor-save-note">Dokumen tersimpan pada data SPPD saat ini.</small>
+        <button class="btn neutral" type="button" data-action="close-modal">Cancel</button>
+        <button class="btn success" type="submit" data-action="save-sppd-letter" data-id="${escapeHtml(item.id)}">${icon("save")} Save Document</button>
+      </div>
+    </form>
+  `;
+}
+
+function saveSppdLetterDocument(id) {
+  const item = findSppdRequest(id);
+  const form = document.getElementById("sppdLetterEditorForm");
+  if (!item || !form) return;
+  const content = String(new FormData(form).get("letterContent") || "").trim();
+  if (!content) {
+    showToast("Isi surat tugas tidak boleh kosong.");
+    return;
+  }
+  item.assignmentLetterContent = content;
+  item.assignmentLetterFile = `Surat Tugas ${item.docNo.replace(/[\\/:*?"<>|]/g, "-")}.docx`;
+  item.employees.forEach((employee) => {
+    employee.assignmentLetter = "Created";
+  });
+  appState.modal = null;
+  renderModal();
+  render();
+  showToast("Surat tugas berhasil disimpan.");
+}
+
+function buildSppdAssignmentDocument(item) {
+  const employees = item.employees.map((employee, index) => [
+    `${index + 1}. ${employee.name} (${employee.nik})`,
+    `   ${employee.position || "-"} / ${employee.division || "-"}`,
+    `   Tujuan: ${employee.destination || item.agendaLocation || "-"}`,
+    `   Periode: ${formatSppdEmployeeAssignmentPeriod(employee, item)}`
+  ].join("\n")).join("\n\n");
+  return [
+    "SURAT TUGAS PERJALANAN DINAS",
+    `Nomor: ${item.docNo}`,
+    "",
+    "Yang bertanda tangan di bawah ini menugaskan:",
+    "",
+    employees || "Belum ada employee yang ditugaskan.",
+    "",
+    `Untuk melaksanakan agenda: ${item.agendaName || "-"}`,
+    `Lokasi: ${item.agendaLocation || "-"}`,
+    `PIC / Requester: ${item.requesterName || "-"} - ${item.requesterDivision || "-"}`,
+    "",
+    "Demikian surat tugas ini dibuat untuk dilaksanakan dengan penuh tanggung jawab.",
+    "",
+    `${todayLabel()}`,
+    "Pejabat Berwenang",
+    "",
+    "",
+    "(____________________________)"
+  ].join("\n");
 }
 
 function previewSppdDocument(fileName) {
