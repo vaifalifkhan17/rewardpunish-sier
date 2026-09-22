@@ -5044,8 +5044,8 @@ function renderSppdSortHeader(key, label, section = "sppdRequestList") {
       <button class="sppd-sort-header ${active ? "active" : ""}" type="button" data-action="sppd-table-sort" data-section="${escapeHtml(section)}" data-sort-key="${escapeHtml(key)}">
         <span>${escapeHtml(label)}</span>
         <span class="sppd-sort-arrows" aria-label="${active ? `Urutan ${sort.direction === "asc" ? "menaik" : "menurun"}` : "Urutkan kolom"}">
-          <i class="${active && sort.direction === "asc" ? "active" : ""}">${icon("arrow-up")}</i>
-          <i class="${active && sort.direction === "desc" ? "active" : ""}">${icon("arrow-down")}</i>
+          <i class="sort-up ${active && sort.direction === "asc" ? "active" : ""}"></i>
+          <i class="sort-down ${active && sort.direction === "desc" ? "active" : ""}"></i>
         </span>
       </button>
     </th>
