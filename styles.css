@@ -3188,6 +3188,33 @@ th.center {
   background: var(--green-dark);
 }
 
+button.btn[data-status="Draft"],
+button.btn[data-action="sppd-save-draft-exit"],
+button.btn[data-detail-status="Draft"] {
+  border-color: #d88a09;
+  background: #e9a21a;
+  color: #ffffff;
+}
+
+button.btn[data-status="Draft"]:hover,
+button.btn[data-action="sppd-save-draft-exit"]:hover,
+button.btn[data-detail-status="Draft"]:hover {
+  border-color: #bd7500;
+  background: #c98200;
+  color: #ffffff;
+}
+
+button.btn[data-status="Submitted"] {
+  border-color: var(--green);
+  background: var(--green);
+  color: #ffffff;
+}
+
+button.btn[data-status="Submitted"]:hover {
+  border-color: var(--green-dark);
+  background: var(--green-dark);
+}
+
 .btn.danger {
   background: var(--red);
 }
@@ -8038,6 +8065,17 @@ svg.icon {
 .sppd-transaction-tabs button.active {
   border-color: var(--blue);
   background: #f0f7ff;
+  color: var(--blue);
+}
+
+.sppd-create-steps button.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #ffffff;
+}
+
+.sppd-create-steps button.active b {
+  background: #ffffff;
   color: var(--blue);
 }
 
