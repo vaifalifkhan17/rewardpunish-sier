@@ -1678,10 +1678,10 @@ function titleForSection(section) {
     sppdRequestList: "All Request",
     sppdCompletedList: "Completed",
     sppdRequest: "Request",
-    sppdVerification: "Verifikasi",
+    sppdVerification: "Verification",
     sppdApproval: "Approval",
     sppdPayment: "Allowance Payment",
-    sppdOtherAllowance: "Other Allowance",
+    sppdOtherAllowance: "Add Cost",
     sppdMaster: "Master SPPD",
     sppdMasterJenis: "Jenis Agenda",
     sppdMasterRegion: "Region",
@@ -5805,6 +5805,10 @@ document.addEventListener("click", (event) => {
     markSppdPaid(target.dataset.id);
   }
 
+  if (action === "sppd-complete") {
+    completeSppdRequest(target.dataset.id);
+  }
+
   if (action === "sppd-payment-employee") {
     openSppdEmployeePaymentModal(target.dataset.id, target.dataset.employeeId);
     return;
@@ -5842,6 +5846,7 @@ document.addEventListener("click", (event) => {
     if (target.checked) selected.add(id);
     else selected.delete(id);
     appState.sppdEmployeePickerIds = [...selected];
+    syncSppdPickerSelectAllState();
   }
 
   if (action === "sppd-toggle-picker-row") {
@@ -5850,18 +5855,19 @@ document.addEventListener("click", (event) => {
     return;
   }
 
-  if (action === "sppd-picker-select-all" || action === "sppd-picker-unselect-all") {
+  if (action === "sppd-picker-toggle-all") {
     const modal = target.closest(".sppd-employee-picker");
-    const selectAll = action === "sppd-picker-select-all";
+    const selectAll = target.checked;
     const selected = new Set(appState.sppdEmployeePickerIds || []);
     modal?.querySelectorAll('.sppd-picker-row input[type="checkbox"][data-action="sppd-toggle-picker-employee"]').forEach((input) => {
       const row = input.closest(".sppd-picker-row");
-      if (input.disabled || (selectAll && row?.classList.contains("is-hidden"))) return;
+      if (input.disabled || row?.classList.contains("is-hidden")) return;
       input.checked = selectAll;
       if (selectAll) selected.add(input.dataset.employeeId);
       else selected.delete(input.dataset.employeeId);
     });
     appState.sppdEmployeePickerIds = [...selected];
+    syncSppdPickerSelectAllState();
     return;
   }
 
@@ -6336,6 +6342,15 @@ document.addEventListener("input", (event) => {
 });
 
 document.addEventListener("change", (event) => {
+  if (event.target.closest("#sppdForm") && ["assignmentStartDate", "assignmentEndDate"].includes(event.target.name)) {
+    const form = event.target.closest("#sppdForm");
+    const startInput = form.querySelector('[name="assignmentStartDate"]');
+    const endInput = form.querySelector('[name="assignmentEndDate"]');
+    const durationLabel = form.querySelector("[data-sppd-duration]");
+    if (startInput && endInput) endInput.min = startInput.value;
+    if (durationLabel) durationLabel.textContent = `${calculateDateDuration(startInput?.value, endInput?.value)} Day(s)`;
+  }
+
   if (event.target.closest("#sppdForm") && ["employeeStartDate", "employeeEndDate"].includes(event.target.name)) {
     updateSppdEmployeeLiveCalculation(event.target.closest("#sppdForm"));
   }
@@ -7058,6 +7073,17 @@ function filterSppdPickerRows(query = "") {
     const text = String(row.dataset.searchText || row.textContent || "").toLowerCase();
     row.classList.toggle("is-hidden", Boolean(keyword) && !text.includes(keyword));
   });
+  syncSppdPickerSelectAllState();
+}
+
+function syncSppdPickerSelectAllState() {
+  const selectAll = modalHost.querySelector('[data-action="sppd-picker-toggle-all"]');
+  if (!selectAll) return;
+  const visibleInputs = [...modalHost.querySelectorAll('.sppd-picker-row:not(.is-hidden) input[type="checkbox"][data-action="sppd-toggle-picker-employee"]')]
+    .filter((input) => !input.disabled);
+  const selectedCount = visibleInputs.filter((input) => input.checked).length;
+  selectAll.checked = visibleInputs.length > 0 && selectedCount === visibleInputs.length;
+  selectAll.indeterminate = selectedCount > 0 && selectedCount < visibleInputs.length;
 }
 
 function syncProcessData(periodId) {
