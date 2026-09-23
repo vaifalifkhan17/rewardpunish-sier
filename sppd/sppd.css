@@ -99,8 +99,8 @@
   border-color: rgba(16, 151, 167, 0.24);
 }
 
-.sppd-metric-card.metric-add-cost {
-  border-color: rgba(47, 112, 204, 0.24);
+.sppd-metric-card.metric-completed {
+  border-color: rgba(27, 156, 105, 0.25);
 }
 
 .sppd-metric-card.metric-request .sppd-metric-icon {
@@ -123,9 +123,9 @@
   color: #087989;
 }
 
-.sppd-metric-card.metric-add-cost .sppd-metric-icon {
-  background: rgba(47, 112, 204, 0.14);
-  color: #1769c2;
+.sppd-metric-card.metric-completed .sppd-metric-icon {
+  background: rgba(39, 181, 124, 0.16);
+  color: #137b51;
 }
 
 .sppd-metric-card-head {
@@ -164,9 +164,9 @@
   background: rgba(26, 174, 189, 0.18);
 }
 
-.metric-add-cost .sppd-metric-card-head {
-  border-bottom-color: rgba(47, 112, 204, 0.30);
-  background: rgba(47, 112, 204, 0.17);
+.metric-completed .sppd-metric-card-head {
+  border-bottom-color: rgba(27, 156, 105, 0.30);
+  background: rgba(39, 181, 124, 0.19);
 }
 
 .sppd-metric-card span,
@@ -1053,6 +1053,59 @@
   color: var(--muted);
 }
 
+.sppd-confirm-content {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+}
+
+.sppd-confirm-content > span {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #fff3da;
+  color: #a66b00;
+}
+
+.sppd-confirm-content p {
+  margin: 7px 0 0;
+  color: #526079;
+  line-height: 1.5;
+}
+
+.sppd-field-error {
+  grid-column: 2;
+  display: block;
+  margin-top: -5px;
+  color: #d93b4a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sppd-detail-information-row [aria-invalid="true"] {
+  border-color: #e04f5f;
+  background: #fff8f8;
+  box-shadow: 0 0 0 2px rgba(224, 79, 95, .10);
+}
+
+.sppd-page button[aria-busy="true"],
+.sppd-document-page button[aria-busy="true"] {
+  cursor: wait;
+  opacity: .72;
+}
+
+.sppd-page button[aria-busy="true"] svg,
+.sppd-document-page button[aria-busy="true"] svg {
+  animation: sppd-busy-spin 1s linear infinite;
+}
+
+@keyframes sppd-busy-spin {
+  to { transform: rotate(360deg); }
+}
+
 .sppd-detail-information-preview .sppd-detail-information-grid {
   margin-top: 16px;
   padding: 4px 0 2px;
@@ -1117,6 +1170,10 @@
   .sppd-date-preview-control,
   .sppd-agenda-preview-control {
     grid-template-columns: 1fr;
+  }
+
+  .sppd-field-error {
+    grid-column: 1;
   }
 }
 

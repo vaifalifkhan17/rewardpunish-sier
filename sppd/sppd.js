@@ -84,7 +84,7 @@ function renderSppdTransactions(completed = false) {
   const approval = source.filter((item) => getSppdWorkflowStage(item) === "Approval").length;
   const verification = source.filter((item) => getSppdWorkflowStage(item) === "Verification").length;
   const payment = source.filter((item) => getSppdWorkflowStage(item) === "Payment").length;
-  const addCost = source.filter((item) => getSppdWorkflowStage(item) === "Add Cost").length;
+  const completedCount = source.filter((item) => getSppdWorkflowStage(item) === "Complete").length;
 
   return `
     <div class="page-grid sppd-page">
@@ -100,7 +100,7 @@ function renderSppdTransactions(completed = false) {
         ${sppdMetricCard("Approval", approval, "Menunggu approval")}
         ${sppdMetricCard("Verification", verification, "Menunggu verification")}
         ${sppdMetricCard("Payment", payment, "Menunggu payment")}
-        ${sppdMetricCard("Add Cost", addCost, "Input biaya tambahan")}
+        ${sppdMetricCard("Completed", completedCount, "Dokumen selesai")}
       </div>
       ${renderSppdRequestList(completed ? "sppdCompletedList" : "sppdRequestList")}
     </div>
@@ -113,7 +113,7 @@ function sppdMetricCard(label, value, note) {
     Verification: "eye",
     Approval: "check",
     Payment: "download",
-    "Add Cost": "plus"
+    Completed: "check"
   };
 
   const metricClass = label.toLowerCase().replace(/\s+/g, "-");
@@ -473,7 +473,7 @@ function renderSppdRequestInfoText(item) {
           <div class="sppd-detail-information-row">
             <span>Request Date</span>
             <div class="sppd-request-preview-control">
-              <strong>${escapeHtml(item.sppdDate || "-")}</strong>
+              <strong>${escapeHtml(formatDate(item.sppdDate) || "-")}</strong>
               <strong>[${escapeHtml(item.docNo || "-")}]</strong>
             </div>
           </div>
@@ -484,7 +484,7 @@ function renderSppdRequestInfoText(item) {
           <div class="sppd-detail-information-row">
             <span>Date</span>
             <div class="sppd-date-preview-control">
-              <strong>${escapeHtml(startDate)}</strong><span>to</span><strong>${escapeHtml(endDate)}</strong><b>${escapeHtml(duration)} Day(s)</b>
+              <strong>${escapeHtml(formatDate(startDate))}</strong><span>to</span><strong>${escapeHtml(formatDate(endDate))}</strong><b>${escapeHtml(duration)} Day(s)</b>
             </div>
           </div>
           <div class="sppd-detail-information-row">
@@ -1542,12 +1542,20 @@ function validateSppdCreateStep(step) {
   if (!form) return true;
   const data = Object.fromEntries(new FormData(form).entries());
 
+  form.querySelectorAll("[aria-invalid='true']").forEach((input) => input.removeAttribute("aria-invalid"));
+  form.querySelectorAll(".sppd-field-error").forEach((message) => message.remove());
+
   if (Number(step) === 1) {
-    if (!data.agendaName || !data.sppdDate || !data.agendaType || !data.region || !data.area || !data.requesterName || !data.requesterDivision || !data.assignmentStartDate || !data.assignmentEndDate || !data.agendaLocation) {
+    const requiredFields = ["agendaName", "sppdDate", "agendaType", "region", "area", "requesterDivision", "assignmentStartDate", "assignmentEndDate", "agendaLocation"];
+    const invalidFields = requiredFields.filter((name) => !String(data[name] || "").trim());
+    invalidFields.forEach((name) => markSppdFieldInvalid(form.querySelector(`[name="${name}"]`), "Field ini wajib diisi."));
+    if (!data.requesterName || invalidFields.length) {
       showToast("Lengkapi seluruh field wajib pada Detail Information.");
+      form.querySelector("[aria-invalid='true']")?.focus();
       return false;
     }
     if (data.assignmentEndDate < data.assignmentStartDate) {
+      markSppdFieldInvalid(form.querySelector('[name="assignmentEndDate"]'), "End Date tidak boleh lebih awal dari Start Date.");
       showToast("End Date tidak boleh lebih awal dari Start Date.");
       return false;
     }
@@ -1558,6 +1566,32 @@ function validateSppdCreateStep(step) {
     return false;
   }
 
+  return true;
+}
+
+function markSppdFieldInvalid(input, message) {
+  if (!input) return;
+  input.setAttribute("aria-invalid", "true");
+  const error = document.createElement("small");
+  error.className = "sppd-field-error";
+  error.textContent = message;
+  const host = input.closest(".sppd-detail-information-row") || input.parentElement;
+  host?.appendChild(error);
+}
+
+function validateSppdParticipantSection() {
+  const item = getSppdCreateRequestItem();
+  const employees = getSppdDrawerEmployees(item || { employees: [] });
+  if (!employees.length) {
+    showToast("Tambahkan minimal satu participant sebelum submit.");
+    document.querySelector(".sppd-create-participant-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return false;
+  }
+  const invalid = employees.some((employee) => !hasCompleteSppdDraftEmployeeDetail(getSppdDraftEmployeeDetail(employee.rowId || employee.id)));
+  if (appState.view === "add" && invalid) {
+    showToast("Lengkapi assignment dan agenda seluruh participant.");
+    return false;
+  }
   return true;
 }
 
@@ -2551,6 +2585,60 @@ function renderSppdOtherAllowanceTab(item) {
   `;
 }
 
+function openSppdConfirmAction(payload) {
+  appState.modal = { type: "sppdConfirmAction", ...payload };
+  renderModal();
+}
+
+function renderSppdConfirmActionModal() {
+  const action = appState.modal?.action;
+  const status = appState.modal?.status;
+  const content = {
+    submitRequest: ["Submit SPPD?", "Pastikan Detail Information dan seluruh participant sudah benar.", "Submit", "success"],
+    paid: ["Confirm payment?", "Semua participant akan ditandai sudah menerima allowance.", "Confirm Paid", "success"],
+    complete: ["Complete SPPD?", "Dokumen akan dipindahkan ke Completed dan tidak dapat diedit lagi.", "Complete", "success"],
+    removeParticipant: ["Remove participant?", "Assignment dan agenda participant ini akan dihapus dari draft.", "Remove", "danger"],
+    status: status === "Approved"
+      ? ["Approve SPPD?", "Dokumen akan diteruskan ke tahap Verification.", "Approve", "success"]
+      : status === "Verified"
+        ? ["Submit Verification?", "Hasil verification akan diteruskan ke tahap Payment.", "Submit", "success"]
+        : status === "Draft" || status === "Submitted"
+          ? ["Return for revision?", "Dokumen akan dikembalikan ke tahap sebelumnya untuk diperbaiki.", "Return", "danger"]
+          : ["Continue process?", "Status dokumen akan diperbarui.", "Continue", "success"]
+  }[action] || ["Confirm action?", "Periksa kembali data sebelum melanjutkan.", "Continue", "success"];
+  return `<div class="modal small sppd-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="sppdConfirmTitle"><div class="modal-header"><h3 id="sppdConfirmTitle">${escapeHtml(content[0])}</h3><button class="icon-button" type="button" aria-label="Close" data-action="close-modal">${icon("x")}</button></div><div class="modal-body"><div class="sppd-confirm-content"><span>${icon("alert-circle")}</span><p>${escapeHtml(content[1])}</p></div></div><div class="modal-footer"><button class="btn neutral" type="button" data-action="close-modal">Cancel</button><button class="btn ${escapeHtml(content[3])}" type="button" data-action="sppd-confirm-action">${escapeHtml(content[2])}</button></div></div>`;
+}
+
+function executeSppdConfirmedAction() {
+  const modal = { ...appState.modal };
+  appState.modal = null;
+  renderModal();
+  if (modal.action === "submitRequest") {
+    const button = document.querySelector('[data-action="save-sppd"][data-status="Submitted"]');
+    setSppdButtonBusy(button, "Submitting...");
+    saveSppdRequest("Submitted");
+  } else if (modal.action === "status") {
+    collectSppdStageFields(modal.id);
+    updateSppdStatus(modal.id, modal.status);
+  } else if (modal.action === "paid") {
+    collectSppdStageFields(modal.id);
+    markSppdPaid(modal.id);
+  } else if (modal.action === "complete") {
+    completeSppdRequest(modal.id);
+  } else if (modal.action === "removeParticipant") {
+    appState.sppdDraftEmployeeIds = appState.sppdDraftEmployeeIds.filter((id) => id !== modal.employeeId);
+    delete appState.sppdDraftEmployeeDetails[modal.employeeId];
+    render();
+  }
+}
+
+function setSppdButtonBusy(button, label = "Processing...") {
+  if (!button || button.disabled) return;
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  button.innerHTML = `${icon("clock")} ${escapeHtml(label)}`;
+}
+
 function renderSppdOtherAllowanceTabView(item) {
   const rows = db.sppdOtherAllowances.filter((row) => row.sppdId === item.id);
   return `
@@ -3096,6 +3184,7 @@ function saveSppdRequest(status) {
   appState.sppdDraftPicEmployeeId = "";
   appState.sppdDraftRequest = null;
   appState.sppdCreateStep = 1;
+  window.sppdFormDirty = false;
 
   showToast(status === "Submitted" ? "SPPD submitted." : "SPPD draft saved.");
   setSection("sppdRequestList", "dashboard");
@@ -3219,6 +3308,16 @@ function upsertSppdPrimaryEmployee(item, employeeId, level = "Pelaksana") {
 function updateSppdStatus(id, status) {
   const item = findSppdRequest(id);
   if (!item) return;
+  const stage = getSppdWorkflowStage(item);
+  const allowed = status === "Draft"
+    || status === "Submitted"
+    || (status === "Approved" && stage === "Approval")
+    || (status === "In Verification" && stage === "Verification")
+    || (status === "Verified" && stage === "Verification");
+  if (!allowed) {
+    showToast(`Aksi tidak tersedia pada tahap ${stage}.`);
+    return;
+  }
   item.status = status;
   item.workflowStage = {
     Draft: "Request",
@@ -3275,6 +3374,10 @@ function collectSppdStageFields(id) {
 function markSppdPaid(id) {
   const item = findSppdRequest(id);
   if (!item) return;
+  if (getSppdWorkflowStage(item) !== "Payment") {
+    showToast("Payment hanya dapat diproses setelah Verification selesai.");
+    return;
+  }
   item.paymentStatus = "Paid";
   item.workflowStage = "Add Cost";
   item.employees?.forEach((employee) => {
@@ -3292,9 +3395,14 @@ function markSppdPaid(id) {
 function completeSppdRequest(id) {
   const item = findSppdRequest(id);
   if (!item) return;
+  if (getSppdWorkflowStage(item) !== "Add Cost") {
+    showToast("SPPD hanya dapat diselesaikan setelah tahap Payment dan Add Cost.");
+    return;
+  }
   item.workflowStage = "Complete";
   item.completedAt = todayIso();
   item.updatedAt = todayIso();
+  window.sppdFormDirty = false;
   appState.sppdDetailTab[id] = "Overview";
   showToast("SPPD completed.");
   render();

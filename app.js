@@ -1514,6 +1514,12 @@ function getApprovalProgress(period) {
 }
 
 function setSection(section, view = "list", selectedId = null) {
+  const leavingDirtySppd = window.sppdFormDirty
+    && appState.section === "sppdRequestList"
+    && appState.view === "add"
+    && (section !== appState.section || view !== appState.view || selectedId !== appState.selectedId);
+  if (leavingDirtySppd && !window.confirm("Perubahan SPPD belum disimpan. Tetap tinggalkan halaman?")) return;
+  if (leavingDirtySppd) window.sppdFormDirty = false;
   appState.section = section;
   appState.view = view;
   appState.selectedId = selectedId;
@@ -5444,6 +5450,8 @@ function renderModal() {
     modalHost.innerHTML = renderSppdDraftEmployeeModal();
   } else if (appState.modal.type === "sppdLetterEditor") {
     modalHost.innerHTML = renderSppdLetterEditorModal();
+  } else if (appState.modal.type === "sppdConfirmAction") {
+    modalHost.innerHTML = renderSppdConfirmActionModal();
   } else {
     modalHost.innerHTML = renderRulesModal();
   }
@@ -5757,6 +5765,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (action === "sppd-discard-create") {
+    window.sppdFormDirty = false;
     appState.modal = null;
     renderModal();
     appState.sppdDraftRequest = null;
@@ -5795,18 +5804,24 @@ document.addEventListener("click", (event) => {
   }
 
   if (action === "sppd-status") {
-    collectSppdStageFields(target.dataset.id);
     if (target.dataset.status === "Verified" && !canSubmitSppdVerification(target.dataset.id)) return;
-    updateSppdStatus(target.dataset.id, target.dataset.status);
+    openSppdConfirmAction({ action: "status", id: target.dataset.id, status: target.dataset.status });
+    return;
   }
 
   if (action === "sppd-paid") {
-    collectSppdStageFields(target.dataset.id);
-    markSppdPaid(target.dataset.id);
+    openSppdConfirmAction({ action: "paid", id: target.dataset.id });
+    return;
   }
 
   if (action === "sppd-complete") {
-    completeSppdRequest(target.dataset.id);
+    openSppdConfirmAction({ action: "complete", id: target.dataset.id });
+    return;
+  }
+
+  if (action === "sppd-confirm-action") {
+    executeSppdConfirmedAction();
+    return;
   }
 
   if (action === "sppd-payment-employee") {
@@ -5915,10 +5930,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (action === "sppd-remove-draft-employee") {
-    const employeeId = target.dataset.employeeId;
-    appState.sppdDraftEmployeeIds = appState.sppdDraftEmployeeIds.filter((id) => id !== employeeId);
-    delete appState.sppdDraftEmployeeDetails[employeeId];
-    render();
+    openSppdConfirmAction({ action: "removeParticipant", employeeId: target.dataset.employeeId });
     return;
   }
 
@@ -6283,7 +6295,15 @@ document.addEventListener("submit", (event) => {
   }
 
   if (submitter.dataset.action === "save-sppd") {
-    saveSppdRequest(submitter.dataset.status || "Draft");
+    const status = submitter.dataset.status || "Draft";
+    if (status === "Submitted") {
+      if (!validateSppdCreateStep(1) || !validateSppdParticipantSection()) return;
+      openSppdConfirmAction({ action: "submitRequest" });
+    } else {
+      setSppdButtonBusy(submitter, "Saving...");
+      saveSppdRequest(status);
+    }
+    return;
   }
 
   if (submitter.dataset.action === "save-sppd-master") {
@@ -6312,6 +6332,7 @@ document.addEventListener("submit", (event) => {
 });
 
 document.addEventListener("input", (event) => {
+  if (event.target.closest("#sppdForm")) window.sppdFormDirty = true;
   if (event.target.closest("#ruleOptions")) {
     updateRuleModalTotals();
   }
@@ -6339,6 +6360,12 @@ document.addEventListener("input", (event) => {
   if (target.dataset.action === "sppd-picker-search") {
     filterSppdPickerRows(target.value);
   }
+});
+
+window.addEventListener("beforeunload", (event) => {
+  if (!window.sppdFormDirty) return;
+  event.preventDefault();
+  event.returnValue = "";
 });
 
 document.addEventListener("change", (event) => {
