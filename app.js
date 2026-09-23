@@ -3919,7 +3919,9 @@ function statusPill(status) {
 
 function sppdStatusPill(status) {
   const key = String(status || "").toLowerCase();
-  const cls = key === "draft"
+  const cls = key === "request"
+    ? "sppd-request"
+    : key === "draft"
     ? "sppd-draft"
     : key === "submitted"
       ? "sppd-submitted"
@@ -3929,8 +3931,10 @@ function sppdStatusPill(status) {
           ? "sppd-approval"
           : key.includes("payment")
             ? "sppd-payment"
-            : key === "completed"
+            : key === "completed" || key === "complete"
               ? "sppd-completed"
+              : key === "add cost"
+                ? "sppd-add-cost"
               : key === "rejected"
                 ? "sppd-rejected"
                 : "sppd-neutral";

@@ -395,6 +395,12 @@
   background: #eef2f7;
 }
 
+.sppd-status.sppd-request {
+  border-color: #bfd8f2;
+  color: #1269a9;
+  background: #eaf4ff;
+}
+
 .sppd-status.sppd-submitted {
   color: #0b67a3;
   background: #e5f3ff;
@@ -418,6 +424,12 @@
 .sppd-status.sppd-completed {
   color: #15704d;
   background: #daf8e9;
+}
+
+.sppd-status.sppd-add-cost {
+  border-color: #d4c9f4;
+  color: #6246b5;
+  background: #f0ecff;
 }
 
 .sppd-status.sppd-rejected {
@@ -1109,6 +1121,20 @@
 .sppd-detail-information-preview .sppd-detail-information-grid {
   margin-top: 16px;
   padding: 4px 0 2px;
+}
+
+.sppd-review-participant-table th,
+.sppd-review-participant-table td {
+  vertical-align: middle;
+}
+
+.sppd-review-participant-table th.center,
+.sppd-review-participant-table td.center {
+  text-align: center;
+}
+
+.sppd-review-participant-table td.center .table-actions {
+  justify-content: center;
 }
 
 .sppd-detail-preview-value,
