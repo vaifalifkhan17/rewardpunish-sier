@@ -1923,10 +1923,17 @@ function renderSppdEmployeePickerModal() {
         <button class="icon-button" type="button" aria-label="Close" data-action="close-modal">${icon("x")}</button>
       </div>
       <div class="modal-body">
-        <label class="searchbox sppd-picker-search">
-          <span data-icon="search"></span>
-          <input type="search" placeholder="Search nama, NIK, position..." data-action="sppd-picker-search">
-        </label>
+        <div class="sppd-picker-tools">
+          <label class="searchbox sppd-picker-search">
+            <span data-icon="search"></span>
+            <input type="search" placeholder="Search nama, NIK, position..." data-action="sppd-picker-search">
+          </label>
+          ${isSingleEmployeeMode ? "" : `<div class="sppd-picker-bulk-actions">
+            <button class="btn primary sppd-picker-tool-button" type="button" data-action="sppd-picker-search-button">${icon("search")} Search</button>
+            <button class="btn neutral sppd-picker-tool-button" type="button" data-action="sppd-picker-select-all">${icon("check")} Select All</button>
+            <button class="btn neutral sppd-picker-tool-button" type="button" data-action="sppd-picker-unselect-all">${icon("x")} Unselect All</button>
+          </div>`}
+        </div>
         <div class="sppd-picker-list table-wrap">
           <table class="sppd-data-table sppd-picker-table">
             <thead>
@@ -1945,7 +1952,7 @@ function renderSppdEmployeePickerModal() {
             const checked = selectedIds.has(employee.id) || selectedNiks.has(employee.nik);
             const searchText = `${employee.name} ${employee.nik} ${employee.position} ${employee.division} ${employee.status}`.toLowerCase();
             return `
-              <tr class="sppd-picker-row" data-search-text="${escapeHtml(searchText)}">
+              <tr class="sppd-picker-row" data-search-text="${escapeHtml(searchText)}" data-action="sppd-toggle-picker-row">
                 <td class="center"><input type="${isSingleEmployeeMode ? "radio" : "checkbox"}" name="${isSingleEmployeeMode ? "sppdSingleEmployeePicker" : ""}" data-action="sppd-toggle-picker-employee" data-employee-id="${escapeHtml(employee.id)}" ${checked ? "checked" : ""} ${disabled ? "disabled" : ""}></td>
                 <td><strong>${escapeHtml(employee.name)}</strong></td>
                 <td>${escapeHtml(employee.nik)}</td>

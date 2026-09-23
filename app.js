@@ -5844,6 +5844,34 @@ document.addEventListener("click", (event) => {
     appState.sppdEmployeePickerIds = [...selected];
   }
 
+  if (action === "sppd-toggle-picker-row") {
+    const input = target.querySelector('[data-action="sppd-toggle-picker-employee"]');
+    if (input && !input.disabled) input.click();
+    return;
+  }
+
+  if (action === "sppd-picker-select-all" || action === "sppd-picker-unselect-all") {
+    const modal = target.closest(".sppd-employee-picker");
+    const selectAll = action === "sppd-picker-select-all";
+    const selected = new Set(appState.sppdEmployeePickerIds || []);
+    modal?.querySelectorAll('.sppd-picker-row input[type="checkbox"][data-action="sppd-toggle-picker-employee"]').forEach((input) => {
+      const row = input.closest(".sppd-picker-row");
+      if (input.disabled || (selectAll && row?.classList.contains("is-hidden"))) return;
+      input.checked = selectAll;
+      if (selectAll) selected.add(input.dataset.employeeId);
+      else selected.delete(input.dataset.employeeId);
+    });
+    appState.sppdEmployeePickerIds = [...selected];
+    return;
+  }
+
+  if (action === "sppd-picker-search-button") {
+    const input = target.closest(".sppd-picker-tools")?.querySelector('[data-action="sppd-picker-search"]');
+    filterSppdPickerRows(input?.value || "");
+    input?.focus();
+    return;
+  }
+
   if (action === "sppd-apply-employee-picker") {
     applySppdEmployeePicker(target.dataset.id || "draft");
   }

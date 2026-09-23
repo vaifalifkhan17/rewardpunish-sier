@@ -884,7 +884,30 @@
 
 .sppd-picker-search {
   width: 100%;
+  margin-bottom: 0;
+}
+
+.sppd-picker-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 12px;
+}
+
+.sppd-picker-tools .sppd-picker-search {
+  flex: 1 1 360px;
+}
+
+.sppd-picker-bulk-actions {
+  display: inline-flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.sppd-picker-tool-button {
+  min-height: 40px;
+  padding: 0 12px;
 }
 
 .sppd-picker-row.is-hidden {
@@ -1535,6 +1558,10 @@
 
 .sppd-picker-table .sppd-picker-row:hover {
   background: #f7fbff;
+}
+
+.sppd-picker-table .sppd-picker-row:has(input:checked) {
+  background: #edf7ff;
 }
 
 .sppd-picker-table th,
