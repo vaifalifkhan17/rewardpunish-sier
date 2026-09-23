@@ -1137,6 +1137,14 @@
   justify-content: center;
 }
 
+.sppd-employee-table .no-col {
+  width: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
 .sppd-detail-preview-value,
 .sppd-request-preview-control > strong,
 .sppd-date-preview-control > strong,

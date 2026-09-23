@@ -802,14 +802,14 @@ function renderSppdCompletedEmployeePanel(item) {
       <div class="panel-body">
         <div class="table-wrap">
           <table class="sppd-data-table sppd-employee-table">
-            <thead><tr><th>Employee</th><th>Destination</th><th>Assignment</th><th class="money-col">Verified Allowance</th><th class="center">Payment</th><th class="center">Letter</th><th class="center">Action</th></tr></thead>
-            <tbody>${item.employees.map((employee) => {
+            <thead><tr><th class="center no-col">No.</th><th>Employee</th><th class="center">Destination</th><th class="center">Assignment</th><th class="center">Verified Allowance</th><th class="center">Payment</th><th class="center">Letter</th><th class="center">Action</th></tr></thead>
+            <tbody>${item.employees.map((employee, index) => {
               const days = Number(employee.duration || item.duration || 1);
               const rate = Number(employee.dailyAllowance || getSppdLevelAllowance(employee.level, item) || 0);
               const calculated = Number(employee.calculatedAllowance || rate * days);
               const verified = Number(employee.verifiedAllowance || calculated);
-              return `<tr><td><strong>${escapeHtml(employee.name)}</strong><small>${escapeHtml(employee.position || "-")} / ${escapeHtml(employee.division || "-")}</small></td><td>${escapeHtml(employee.destination || "-")}</td><td>${formatSppdPeriodCell(formatSppdEmployeeAssignmentPeriod(employee, item))}<small>${escapeHtml(days)} hari</small></td><td class="money-col"><strong>${formatRupiah(verified)}</strong></td><td class="center">${statusPill(employee.paymentStatus === "Paid" ? "Sudah Menerima" : "Pending")}</td><td class="center">${statusPill(employee.assignmentLetter === "Created" ? "Created" : "Draft")}</td><td class="center"><span class="table-actions"><button class="action-icon action-view" type="button" title="View Employee" data-action="sppd-employee-drawer" data-id="${escapeHtml(item.id)}" data-employee-id="${escapeHtml(employee.id)}" data-mode="detail">${icon("eye")}</button></span></td></tr>`;
-            }).join("") || emptyRow(7, "Belum ada employee.")}</tbody>
+              return `<tr><td class="center no-col">${escapeHtml(index + 1)}</td><td><strong>${escapeHtml(employee.name)}</strong><small>${escapeHtml(employee.position || "-")} / ${escapeHtml(employee.division || "-")}</small></td><td class="center">${escapeHtml(employee.destination || "-")}</td><td class="center">${formatSppdPeriodCell(formatSppdEmployeeAssignmentPeriod(employee, item))}<small>${escapeHtml(days)} hari</small></td><td class="center"><strong>${formatRupiah(verified)}</strong></td><td class="center">${statusPill(employee.paymentStatus === "Paid" ? "Sudah Menerima" : "Pending")}</td><td class="center">${statusPill(employee.assignmentLetter === "Created" ? "Created" : "Draft")}</td><td class="center"><span class="table-actions"><button class="action-icon action-view" type="button" title="View Employee" data-action="sppd-employee-drawer" data-id="${escapeHtml(item.id)}" data-employee-id="${escapeHtml(employee.id)}" data-mode="detail">${icon("eye")}</button></span></td></tr>`;
+            }).join("") || emptyRow(8, "Belum ada employee.")}</tbody>
           </table>
         </div>
       </div>
