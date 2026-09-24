@@ -43,6 +43,8 @@ function getSppdProcess(item) {
 
 function getSppdDisplayStatus(item) {
   if (item.status === "Rejected") return "Rejected";
+  if (item.status === "Draft") return "Draft";
+  if (item.status === "Request") return "Request";
   const stage = getSppdWorkflowStage(item);
   return stage === "Complete" ? "Completed" : stage;
 }
@@ -138,7 +140,7 @@ function renderSppdDocumentPage() {
   const activeStage = getSppdEmployeeTab(item);
   const footerAction = completed ? "" : renderSppdDrawerAction(activeStage, item, ["Verification", "Payment"].includes(activeStage));
   const detailTabs = getSppdDetailTabs(item);
-  const activeTab = detailTabs.includes(appState.sppdDetailTab[item.id]) ? appState.sppdDetailTab[item.id] : "Overview";
+  const activeTab = detailTabs.includes(appState.sppdDetailTab[item.id]) ? appState.sppdDetailTab[item.id] : "Request";
 
   return `
     <div class="page-grid sppd-document-page">
@@ -212,53 +214,40 @@ function renderSppdDetailTabs(item, activeTab) {
 
 function getSppdDetailTabIcon(tab) {
   return {
-    Overview: "file-text",
-    Employee: "user",
+    Request: "file-text",
     Verification: "check",
     Approval: "clipboard",
     Payment: "upload",
-    "Letter Assignment": "file-text",
-    Documents: "file-text",
     "Add Cost": "plus",
-    History: "clock"
+    Complete: "check"
   }[tab] || "file-text";
 }
 
 function getSppdDetailTabDone(item, tab) {
-  if (tab === "Approval") return item.status === "Approved" || item.paymentStatus === "Paid" || getSppdStatus(item) === "Completed";
-  if (tab === "Verification") return ["Verified", "Add Cost", "Complete"].includes(item.status) || ["Payment", "Add Cost", "Complete"].includes(getSppdWorkflowStage(item));
-  if (tab === "Payment") return item.employees?.length && item.employees.every((employee) => employee.paymentStatus === "Paid");
-  if (tab === "Letter Assignment") return item.employees?.length && item.employees.every((employee) => employee.assignmentLetter === "Created");
-  return false;
+  const tabs = ["Request", "Approval", "Verification", "Payment", "Add Cost", "Complete"];
+  const currentIndex = tabs.indexOf(getSppdWorkflowStage(item));
+  const tabIndex = tabs.indexOf(tab);
+  return tabIndex >= 0 && (tabIndex < currentIndex || (tab === "Complete" && currentIndex === tabIndex));
 }
 
 function getSppdDetailTabs(item) {
-  const order = ["Request", "Approval", "Verification", "Payment", "Add Cost", "Complete"];
-  const currentIndex = order.indexOf(getSppdWorkflowStage(item));
-  const tabs = ["Overview", "Employee"];
-  if (currentIndex >= 1) tabs.push("Approval");
-  if (currentIndex >= 2) tabs.push("Verification");
-  if (currentIndex >= 3) tabs.push("Payment", "Letter Assignment", "Documents");
-  if (currentIndex >= 4) tabs.push("Add Cost");
-  if (currentIndex >= 5) tabs.push("History");
-  return tabs;
+  const tabs = ["Request", "Approval", "Verification", "Payment", "Add Cost", "Complete"];
+  const currentIndex = tabs.indexOf(getSppdWorkflowStage(item));
+  return tabs.slice(0, Math.max(currentIndex, 0) + 1);
 }
 
 function renderSppdDetailTabContent(item, activeTab) {
-  if (activeTab === "Overview") return getSppdStatus(item) === "Completed" ? renderSppdCompletedOverviewView(item) : renderSppdOverviewStageView(item);
+  if (activeTab === "Request") return renderSppdOverviewStageView(item);
   if (activeTab === "Verification") return renderSppdVerificationTabView(item);
   if (activeTab === "Approval") return renderSppdApprovalTabView(item);
   if (activeTab === "Payment") return renderSppdPaymentTabView(item);
-  if (activeTab === "Letter Assignment") return renderSppdLetterAssignmentTabView(item);
-  if (activeTab === "Employee") return getSppdStatus(item) === "Completed" ? renderSppdCompletedEmployeePanel(item) : renderSppdEmployeeTablePanel(item);
   if (activeTab === "Add Cost") return renderSppdOtherAllowanceTabView(item);
-  if (activeTab === "Documents") return renderSppdDocumentsPanel(item);
-  if (activeTab === "History") return renderSppdHistoryPanel(item);
+  if (activeTab === "Complete") return renderSppdCompletedOverviewView(item);
   return renderSppdOverviewStageView(item);
 }
 
 function renderSppdOverviewPanel(item) {
-  return `<div class="panel sppd-summary-panel"><div class="panel-header"><div><h2>Overview</h2><small class="panel-kicker">${escapeHtml(item.docNo)} - ${escapeHtml(item.requesterName)}</small></div></div><div class="panel-body"><div class="sppd-summary-modern"><div class="sppd-summary-main"><span class="sppd-summary-label">Request Information</span><h3>${escapeHtml(item.agendaName || "-")}</h3><p>${escapeHtml(item.requesterName || "-")} - ${escapeHtml(item.requesterDivision || "-")}</p><div class="sppd-summary-chips"><span>${escapeHtml(getSppdProcess(item))}</span><span>${escapeHtml(getSppdStatus(item))}</span><span>${escapeHtml(item.sppdDate || "-")}</span></div></div><div class="sppd-summary-total"><span>Participants</span><strong>${escapeHtml(getSppdParticipantCount(item))}</strong><small>${escapeHtml(getSppdMainDestination(item))}</small></div><div class="sppd-summary-details">${sppdSummaryItem("SPPD Number", item.docNo)}${sppdSummaryItem("PIC / Division", `${item.requesterName} - ${item.requesterDivision}`)}${sppdSummaryItem("Purpose", item.agendaName || "-")}${sppdSummaryItem("Destination Summary", getSppdMainDestination(item))}${sppdSummaryItem("Overall Assignment", formatSppdAssignmentPeriod(item))}${sppdSummaryFileItem("Attachment", item.attachment)}${sppdSummaryItem("Remark", item.remark || "-")}${sppdSummaryItem("Last Updated", item.updatedAt || item.sppdDate || "-")}</div></div></div></div>`;
+  return `<div class="panel sppd-summary-panel"><div class="panel-header"><div><h2>Request</h2><small class="panel-kicker">${escapeHtml(item.docNo)} - ${escapeHtml(item.requesterName)}</small></div></div><div class="panel-body"><div class="sppd-summary-modern"><div class="sppd-summary-main"><span class="sppd-summary-label">Request Information</span><h3>${escapeHtml(item.agendaName || "-")}</h3><p>${escapeHtml(item.requesterName || "-")} - ${escapeHtml(item.requesterDivision || "-")}</p><div class="sppd-summary-chips"><span>${escapeHtml(getSppdProcess(item))}</span><span>${escapeHtml(getSppdStatus(item))}</span><span>${escapeHtml(item.sppdDate || "-")}</span></div></div><div class="sppd-summary-total"><span>Participants</span><strong>${escapeHtml(getSppdParticipantCount(item))}</strong><small>${escapeHtml(getSppdMainDestination(item))}</small></div><div class="sppd-summary-details">${sppdSummaryItem("SPPD Number", item.docNo)}${sppdSummaryItem("PIC / Division", `${item.requesterName} - ${item.requesterDivision}`)}${sppdSummaryItem("Purpose", item.agendaName || "-")}${sppdSummaryItem("Destination Summary", getSppdMainDestination(item))}${sppdSummaryItem("Overall Assignment", formatSppdAssignmentPeriod(item))}${sppdSummaryFileItem("Attachment", getSppdAttachmentNames(item))}${sppdSummaryItem("Remark", item.remark || "-")}${sppdSummaryItem("Last Updated", item.updatedAt || item.sppdDate || "-")}</div></div></div></div>`;
 }
 
 function renderSppdOverviewStageView(item) {
@@ -271,7 +260,7 @@ function renderSppdOverviewStageView(item) {
     <div class="panel sppd-stage-view-panel">
       <div class="panel-header">
         <div>
-          <h2>Overview</h2>
+          <h2>Request</h2>
           <small class="panel-kicker">Ringkasan dokumen mengikuti current stage SPPD.</small>
         </div>
       </div>
@@ -287,7 +276,7 @@ function renderSppdCompletedOverviewView(item) {
     <div class="panel sppd-stage-view-panel">
       <div class="panel-header">
         <div>
-          <h2>Completed Overview</h2>
+          <h2>Request</h2>
           <small class="panel-kicker">Ringkasan akhir dari Request, Verification, Approval, Payment, dan Letter Assignment.</small>
         </div>
       </div>
@@ -383,10 +372,7 @@ function renderSppdApprovalTabView(item) {
   return `
     <div class="panel sppd-stage-view-panel">
       <div class="panel-header">
-        <div><h2>Approval</h2><small class="panel-kicker">Approval berurutan dari level rendah sampai atasan terakhir.</small></div>
-        <div class="panel-actions">
-          <button class="btn neutral" type="button" data-action="sppd-approval-setting" data-id="${escapeHtml(item.id)}">${icon("settings")} Setting Approval</button>
-        </div>
+        <div><h2>Approval</h2><small class="panel-kicker">Urutan approval: BOQ, Kepala Divisi, dan Kepala Departemen.</small></div>
       </div>
       <div class="panel-body sppd-stage-view">
         ${renderSppdApprovalTrackTable(item)}
@@ -474,7 +460,7 @@ function renderSppdRequestInfoText(item) {
             <span>Request Date</span>
             <div class="sppd-request-preview-control">
               <strong>${escapeHtml(formatDate(item.sppdDate) || "-")}</strong>
-              <strong>[${escapeHtml(item.docNo || "-")}]</strong>
+              <span class="sppd-doc-number-label">[${escapeHtml(item.docNo || "-")}]</span>
             </div>
           </div>
           <div class="sppd-detail-information-row sppd-agenda-field">
@@ -505,7 +491,7 @@ function renderSppdRequestInfoText(item) {
           <div class="sppd-detail-information-row"><span>Area</span><div class="sppd-detail-preview-value">${escapeHtml(area)}</div></div>
           <div class="sppd-detail-information-row"><span>PIC / Requester</span><div class="sppd-detail-preview-value">${escapeHtml(pic)}</div></div>
           <div class="sppd-detail-information-row"><span>Division</span><div class="sppd-detail-preview-value">${escapeHtml(item.requesterDivision || "-")}</div></div>
-          <div class="sppd-detail-information-row sppd-attachment-field"><span>Attachment</span><div class="sppd-detail-preview-value">${renderSppdFileLink(item.attachment)}</div></div>
+          <div class="sppd-detail-information-row sppd-attachment-field"><span>Attachment</span>${renderSppdFileList(getSppdAttachmentNames(item))}</div>
         </div>
       </div>
     </div>
@@ -516,6 +502,81 @@ function renderSppdParticipantReviewTable(item, options = {}) {
   const mode = options.mode || "overview";
   const isVerification = mode === "verification";
   const isPayment = mode === "payment";
+  if (!isVerification && !isPayment) {
+    return `
+      <div class="sppd-review-section">
+        <h4>Participant Breakdown</h4>
+        <div class="table-wrap">
+          <table class="sppd-data-table sppd-review-participant-table sppd-review-overview-table">
+            <colgroup>
+              <col class="employee-col">
+              <col class="division-col">
+              <col class="agenda-col">
+              <col class="period-col">
+              <col class="level-col">
+              <col class="action-col">
+            </colgroup>
+            <thead><tr><th>Employee</th><th>Division</th><th class="center">Agenda</th><th class="center">Period</th><th class="center">Level</th><th class="center">Action</th></tr></thead>
+            <tbody>${item.employees.map((employee) => {
+              const days = Number(employee.duration || item.duration || 1);
+              const agendaNames = (employee.agendas || []).map((agenda) => agenda.name).filter(Boolean);
+              const agendas = agendaNames.length ? agendaNames : [item.agendaName || "-"];
+              const action = item.status === "Draft"
+                ? `<button class="action-icon action-edit" type="button" title="Edit Employee" aria-label="Edit Employee" data-action="edit" data-section="sppdRequestList" data-id="${escapeHtml(item.id)}">${icon("edit")}</button>`
+                : `<button class="action-icon action-view" type="button" title="View Employee" aria-label="View Employee" data-action="sppd-employee-drawer" data-id="${escapeHtml(item.id)}" data-employee-id="${escapeHtml(employee.id)}" data-mode="detail">${icon("eye")}</button>`;
+              return `<tr><td><strong>${escapeHtml(employee.name)}</strong><small>${escapeHtml(employee.nik || employee.employeeId || "-")}</small></td><td><strong>${escapeHtml(employee.division || "-")}</strong><small>${escapeHtml(employee.position || "-")}</small></td><td><div class="sppd-agenda-name-list">${agendas.map((agenda) => `<span>${escapeHtml(agenda)}</span>`).join("")}</div></td><td class="center">${formatSppdPeriodCell(formatSppdEmployeeAssignmentPeriod(employee, item))}<small>${escapeHtml(days)} Days</small></td><td class="center"><strong>${escapeHtml(employee.level || "-")}</strong></td><td class="center"><span class="table-actions">${action}</span></td></tr>`;
+            }).join("") || emptyRow(6, "Belum ada employee.")}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+  if (isVerification) {
+    return `
+      <div class="sppd-review-section">
+        <h4>Participant Breakdown</h4>
+        <div class="table-wrap sppd-verification-table-wrap">
+          <table class="sppd-data-table sppd-review-participant-table sppd-verification-participant-table">
+            <colgroup><col class="employee-col"><col class="division-col"><col class="agenda-col"><col class="period-col"><col class="level-col"><col class="allowance-col"><col class="verification-col"><col class="action-col"></colgroup>
+            <thead><tr><th>Employee</th><th>Division</th><th class="center">Agenda</th><th class="center">Period</th><th class="center">Level</th><th class="money-col">Allowance</th><th class="center">Verification</th><th class="center">Action</th></tr></thead>
+            <tbody>${item.employees.map((employee) => {
+              const days = Number(employee.duration || item.duration || 1);
+              const rate = Number(employee.dailyAllowance || getSppdLevelAllowance(employee.level, item) || 0);
+              const allowance = Number(employee.calculatedAllowance || rate * days);
+              const agendaNames = (employee.agendas || []).map((agenda) => agenda.name).filter(Boolean);
+              const agendas = agendaNames.length ? agendaNames : [item.agendaName || "-"];
+              const action = `<button class="action-icon action-edit" type="button" title="Verify Employee" aria-label="Verify Employee" data-action="sppd-employee-drawer" data-id="${escapeHtml(item.id)}" data-employee-id="${escapeHtml(employee.id)}" data-mode="employee">${icon("edit")}</button>`;
+              return `<tr><td><strong>${escapeHtml(employee.name)}</strong><small>${escapeHtml(employee.nik || "-")}</small></td><td><strong>${escapeHtml(employee.division || "-")}</strong><small>${escapeHtml(employee.position || "-")}</small></td><td><div class="sppd-agenda-name-list">${agendas.map((agenda) => `<span>${escapeHtml(agenda)}</span>`).join("")}</div></td><td class="center">${formatSppdPeriodCell(formatSppdEmployeeAssignmentPeriod(employee, item))}<small>${escapeHtml(days)} Days</small></td><td class="center"><strong>${escapeHtml(employee.level || "-")}</strong></td><td class="money-col"><strong>${formatRupiah(allowance)}</strong></td><td class="center">${statusPill(employee.verificationStatus || "Pending")}</td><td class="center"><span class="table-actions">${action}</span></td></tr>`;
+            }).join("") || emptyRow(8, "Belum ada employee.")}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+  if (isPayment) {
+    const canProcessPayment = item.status === "Approved" && item.paymentStatus !== "Paid";
+    return `
+      <div class="sppd-review-section">
+        <h4>Employee Payment</h4>
+        <div class="table-wrap sppd-payment-table-wrap">
+          <table class="sppd-data-table sppd-review-participant-table sppd-payment-participant-table">
+            <colgroup><col class="employee-col"><col class="division-col"><col class="agenda-col"><col class="period-col"><col class="level-col"><col class="allowance-col"><col class="status-col"><col class="date-col"><col class="proof-col"><col class="action-col"></colgroup>
+            <thead><tr><th>Employee</th><th>Division</th><th class="center">Agenda</th><th class="center">Period</th><th class="center">Level</th><th class="money-col">Allowance</th><th class="center">Payment Status</th><th class="center">Payment Date</th><th class="center">Bukti Transfer</th><th class="center">Action</th></tr></thead>
+            <tbody>${item.employees.map((employee) => {
+              const days = Number(employee.duration || item.duration || 1);
+              const rate = Number(employee.dailyAllowance || getSppdLevelAllowance(employee.level, item) || 0);
+              const allowance = Number(employee.verifiedAllowance || employee.calculatedAllowance || rate * days);
+              const isPaid = employee.paymentStatus === "Paid";
+              const agendaNames = (employee.agendas || []).map((agenda) => agenda.name).filter(Boolean);
+              const agendas = agendaNames.length ? agendaNames : [item.agendaName || "-"];
+              const action = `<button class="action-icon ${canProcessPayment ? "action-edit" : "action-view"}" type="button" title="${isPaid ? "View Payment" : "Process Payment"}" aria-label="${isPaid ? "View Payment" : "Process Payment"}" data-action="sppd-payment-employee" data-id="${escapeHtml(item.id)}" data-employee-id="${escapeHtml(employee.id)}">${icon(isPaid ? "eye" : "upload")}</button>`;
+              return `<tr><td><strong>${escapeHtml(employee.name)}</strong><small>${escapeHtml(employee.nik || "-")}</small></td><td><strong>${escapeHtml(employee.division || "-")}</strong><small>${escapeHtml(employee.position || "-")}</small></td><td><div class="sppd-agenda-name-list">${agendas.map((agenda) => `<span>${escapeHtml(agenda)}</span>`).join("")}</div></td><td class="center">${formatSppdPeriodCell(formatSppdEmployeeAssignmentPeriod(employee, item))}<small>${escapeHtml(days)} Days</small></td><td class="center"><strong>${escapeHtml(employee.level || "-")}</strong></td><td class="money-col"><strong>${formatRupiah(allowance)}</strong></td><td class="center">${statusPill(isPaid ? "Paid" : "Pending")}</td><td class="center">${escapeHtml(employee.paymentDate || "-")}</td><td class="center">${renderSppdFileLink(employee.transferProof)}</td><td class="center"><span class="table-actions">${action}</span></td></tr>`;
+            }).join("") || emptyRow(10, "Belum ada employee.")}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
   return `
     <div class="sppd-review-section">
       <h4>${isPayment ? "Employee Payment" : "Participant Breakdown"}</h4>
@@ -560,14 +621,17 @@ function renderSppdVerificationResultTable(item) {
 }
 
 function getSppdApprovalFlow(item) {
-  if (!item.approvalFlow) {
-    item.approvalFlow = [
-      { role: "Kepala Unit", approver: "Kepala Unit Terkait", active: true },
-      { role: "Kepala Departemen", approver: "Kepala Departemen Terkait", active: true },
-      { role: "Kepala Divisi", approver: `Kepala Divisi ${item.requesterDivision || "Terkait"}`, active: true },
-      { role: "BOD", approver: "BOD Terkait", active: true }
-    ];
-  }
+  const current = Array.isArray(item.approvalFlow) ? item.approvalFlow : [];
+  const definitions = [
+    { role: "BOQ", approver: "Andi Pratama" },
+    { role: "Kepala Divisi", approver: "Sinta Maharani" },
+    { role: "Kepala Departemen", approver: "Dedi Kurniawan" }
+  ];
+  item.approvalFlow = definitions.map((definition) => ({
+    ...(current.find((row) => row.role === definition.role) || {}),
+    ...definition,
+    active: true
+  }));
   return item.approvalFlow;
 }
 
@@ -755,19 +819,19 @@ function saveSppdApprovalSetting(id) {
 function renderSppdApprovalTrackTable(item) {
   const approved = item.status === "Approved" || item.paymentStatus === "Paid";
   const activeRows = getSppdApprovalFlow(item).filter((row) => row.active);
+  const approvalDate = item.updatedAt || item.sppdDate || todayIso();
   const rows = activeRows.map((row, index) => [
     row.role,
     row.approver,
     approved ? "Approved" : index === 0 && item.status === "Verified" ? "Waiting" : "Queue",
-    approved ? item.updatedAt || todayIso() : "-",
-    approved ? "Disetujui." : "-"
+    approvalDate
   ]);
   return `
     <div class="sppd-review-section">
       <h4>Approval Track</h4>
       <div class="table-wrap"><table class="sppd-data-table sppd-approval-track-table">
-        <thead><tr><th>Stage</th><th>Approver</th><th class="center">Status</th><th>Date</th><th>Remark</th></tr></thead>
-        <tbody>${rows.map(([stage, approver, status, date, remark]) => `<tr><td><strong>${escapeHtml(stage)}</strong></td><td>${escapeHtml(approver)}</td><td class="center">${statusPill(status)}</td><td>${escapeHtml(date)}</td><td>${escapeHtml(remark)}</td></tr>`).join("")}</tbody>
+        <thead><tr><th>Stage</th><th>Approver</th><th class="center">Status</th><th class="center">Date</th></tr></thead>
+        <tbody>${rows.map(([stage, approver, status, date]) => `<tr><td><strong>${escapeHtml(stage)}</strong></td><td><strong>${escapeHtml(approver)}</strong></td><td class="center">${statusPill(status)}</td><td class="center">${escapeHtml(date)}</td></tr>`).join("")}</tbody>
       </table></div>
     </div>
   `;
@@ -842,14 +906,33 @@ function renderSppdLetterAssignmentTable(item) {
 }
 
 function renderSppdEmployeeTablePanel(item, editable = false) {
-  return `<div class="panel sppd-employee-table-panel"><div class="panel-header"><div><h2>Employee</h2><small class="panel-kicker">Participant, assignment period, agenda, allowance, dan payment per employee.</small></div></div><div class="panel-body"><div class="table-wrap"><table class="sppd-data-table sppd-employee-table"><thead><tr><th class="person-col">Employee</th><th>Divisi</th><th class="center">Destination</th><th class="date-col center">Assignment Period</th><th class="date-col center">Duration</th><th class="center">Agenda</th><th class="money-col">Allowance</th><th class="center">Status</th><th class="center">Action</th></tr></thead><tbody>${item.employees.map((employee) => { const duration = employee.duration || item.duration || 1; const allowance = Number(employee.verifiedAllowance || employee.calculatedAllowance || Number(employee.dailyAllowance || 0) * Number(duration || 0)); return `<tr><td><strong>${escapeHtml(employee.name)}</strong><br><small>${escapeHtml(employee.nik)}</small></td><td><strong>${escapeHtml(employee.division || "-")}</strong><small class="sppd-cell-subtitle">${escapeHtml(employee.position || "-")}</small></td><td class="center">${escapeHtml(employee.destination || item.agendaLocation || "-")}</td><td class="center">${formatSppdPeriodCell(formatSppdEmployeeAssignmentPeriod(employee, item))}</td><td class="center">${escapeHtml(duration)} hari</td><td class="center">${escapeHtml(employee.agendas?.length || 0)} agenda</td><td class="money-col">${formatRupiah(allowance)}</td><td class="center">${statusPill(employee.paymentStatus || employee.assignmentLetter || "Pending")}</td><td class="center"><span class="table-actions"><button class="action-icon ${editable ? "action-edit" : "action-view"}" type="button" title="${editable ? "Edit Detail" : "View Detail"}" aria-label="${editable ? "Edit Detail" : "View Detail"}" data-action="sppd-employee-drawer" data-id="${escapeHtml(item.id)}" data-employee-id="${escapeHtml(employee.id)}" data-mode="${editable ? "employee" : "detail"}">${icon(editable ? "edit" : "eye")}</button></span></td></tr>`; }).join("") || emptyRow(9, "Belum ada employee.")}</tbody></table></div></div></div>`;
+  return `
+    <div class="panel sppd-employee-table-panel">
+      <div class="panel-header"><div><h2>Employee</h2><small class="panel-kicker">Participant, division, agenda, period, dan level per employee.</small></div></div>
+      <div class="panel-body"><div class="table-wrap">
+        <table class="sppd-data-table sppd-employee-table sppd-employee-request-table">
+          <colgroup><col class="employee-col"><col class="division-col"><col class="agenda-col"><col class="period-col"><col class="level-col"><col class="action-col"></colgroup>
+          <thead><tr><th>Employee</th><th>Division</th><th class="center">Agenda</th><th class="center">Period</th><th class="center">Level</th><th class="center">Action</th></tr></thead>
+          <tbody>${item.employees.map((employee) => {
+            const duration = employee.duration || item.duration || 1;
+            const agendaNames = (employee.agendas || []).map((agenda) => agenda.name).filter(Boolean);
+            const agendas = agendaNames.length ? agendaNames : [item.agendaName || "-"];
+            return `<tr><td><strong>${escapeHtml(employee.name)}</strong><small>${escapeHtml(employee.nik || "-")}</small></td><td><strong>${escapeHtml(employee.division || "-")}</strong><small>${escapeHtml(employee.position || "-")}</small></td><td><div class="sppd-agenda-name-list">${agendas.map((agenda) => `<span>${escapeHtml(agenda)}</span>`).join("")}</div></td><td class="center">${formatSppdPeriodCell(formatSppdEmployeeAssignmentPeriod(employee, item))}<small>${escapeHtml(duration)} Days</small></td><td class="center"><strong>${escapeHtml(employee.level || "-")}</strong></td><td class="center"><span class="table-actions"><button class="action-icon ${editable ? "action-edit" : "action-view"}" type="button" title="${editable ? "Edit Detail" : "View Detail"}" aria-label="${editable ? "Edit Detail" : "View Detail"}" data-action="sppd-employee-drawer" data-id="${escapeHtml(item.id)}" data-employee-id="${escapeHtml(employee.id)}" data-mode="${editable ? "employee" : "detail"}">${icon(editable ? "edit" : "eye")}</button></span></td></tr>`;
+          }).join("") || emptyRow(6, "Belum ada employee.")}</tbody>
+        </table>
+      </div></div>
+    </div>
+  `;
 }
 
 function renderSppdDocumentsPanel(item) {
   const generated = item.employees.some((employee) => employee.assignmentLetter === "Created");
-  const requestDocuments = item.attachment
-    ? [{ name: item.attachment, type: "Undangan / Dokumen Pendukung", owner: item.requesterName, status: item.status === "Draft" ? "Draft" : "Submitted" }]
-    : [];
+  const requestDocuments = getSppdAttachmentNames(item).map((name) => ({
+    name,
+    type: "Undangan / Dokumen Pendukung",
+    owner: item.requesterName,
+    status: item.status === "Draft" ? "Draft" : "Submitted"
+  }));
   const paymentDocuments = item.employees
     .filter((employee) => employee.transferProof)
     .map((employee) => ({
@@ -962,8 +1045,6 @@ function renderSppdAllRequestTable(rows, actionLabel = "View Detail", rowOffset 
     { key: "requesterName", label: "PIC" },
     { key: "division", label: "Division" },
     { key: "participants", label: "Participants" },
-    { key: "destination", label: "Destination" },
-    { key: "assignmentPeriod", label: "Assignment Period" },
     { key: "status", label: "Status" }
   ];
   return `
@@ -977,16 +1058,19 @@ function renderSppdAllRequestTable(rows, actionLabel = "View Detail", rowOffset 
           </tr>
         </thead>
         <tbody>
-          ${rows.map((item, index) => `
+          ${rows.map((item, index) => {
+            const requester = db.employees.find((employee) => employee.id === item.requesterEmployeeId || employee.nik === item.requesterEmployeeId)
+              || db.employees.find((employee) => employee.name === item.requesterName);
+            const requesterNik = requester?.nik || item.requesterNik || "-";
+            const requesterPosition = requester?.position || item.requesterPosition || "-";
+            return `
             <tr>
               <td class="center no-col">${rowOffset + index + 1}</td>
               <td><strong>${escapeHtml(item.docNo)}</strong><small>${escapeHtml(item.requestDate || item.sppdDate || "-")}</small></td>
-              <td><strong>${escapeHtml(item.requesterName || "-")}</strong><small>${escapeHtml(item.requesterPosition || "PIC / Requester")}</small></td>
-              <td>${escapeHtml(item.division || item.requesterDivision || "-")}</td>
-              <td>${escapeHtml(item.participantsText || getSppdParticipantCount(item))}</td>
-              <td>${escapeHtml(item.destinationText || getSppdMainDestination(item))}</td>
-              <td>${formatSppdPeriodCell(item.assignmentPeriodText || formatSppdAssignmentPeriod(item))}</td>
-              <td>${sppdStatusPill(item.readableStatus || getSppdStatus(item))}</td>
+              <td><strong>${escapeHtml(item.requesterName || "-")}</strong><small>${escapeHtml(requesterNik)}</small></td>
+              <td><strong>${escapeHtml(item.division || item.requesterDivision || requester?.division || "-")}</strong><small>${escapeHtml(requesterPosition)}</small></td>
+              <td class="center">${escapeHtml(item.participantsText || getSppdParticipantCount(item))}</td>
+              <td class="center">${sppdStatusPill(item.readableStatus || getSppdStatus(item))}</td>
               <td class="center">
                 <span class="table-actions">
                   <button class="action-icon action-view" type="button" title="${escapeHtml(actionLabel)}" aria-label="${escapeHtml(actionLabel)}" data-action="detail" data-section="${escapeHtml(section)}" data-id="${escapeHtml(item.id)}">${icon("eye")}</button>
@@ -994,7 +1078,8 @@ function renderSppdAllRequestTable(rows, actionLabel = "View Detail", rowOffset 
                 </span>
               </td>
             </tr>
-          `).join("") || emptyRow(9, "Tidak ada data SPPD.")}
+          `;
+          }).join("") || emptyRow(7, "Tidak ada data SPPD.")}
         </tbody>
       </table>
     </div>
@@ -1024,7 +1109,24 @@ function formatSppdPeriodCell(value) {
   if (text === "-") return "-";
   const parts = text.split(" s/d ");
   if (parts.length < 2) return escapeHtml(text);
-  return `${escapeHtml(parts[0])}<br><small>s/d ${escapeHtml(parts.slice(1).join(" s/d "))}</small>`;
+  const formatPeriodDate = (date) => {
+    const match = String(date).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return match ? `${match[3]} - ${match[2]} - ${match[1]}` : String(date).trim();
+  };
+  return `<span class="sppd-period-range">${escapeHtml(formatPeriodDate(parts[0]))} s/d ${escapeHtml(formatPeriodDate(parts.slice(1).join(" s/d ")))}</span>`;
+}
+
+function formatSppdCompactPeriodCell(value) {
+  const text = String(value || "-");
+  if (text === "-") return "-";
+  const parts = text.split(" s/d ");
+  if (parts.length < 2) return escapeHtml(text);
+  const getIsoDate = (part) => String(part).trim().match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
+  const startDate = getIsoDate(parts[0]);
+  const endDate = getIsoDate(parts.slice(1).join(" s/d "));
+  const formatDatePart = (date) => date ? date.split("-").reverse().join(" - ") : "-";
+  const days = startDate && endDate ? daysBetweenInclusive(startDate, endDate) : 0;
+  return `<span class="sppd-table-period-range"><strong>${escapeHtml(formatDatePart(startDate))} s/d ${escapeHtml(formatDatePart(endDate))}</strong><small>${escapeHtml(days)} Days</small></span>`;
 }
 
 function renderSppdDocumentStagePanel(item) {
@@ -1332,8 +1434,20 @@ function renderSppdFileLink(fileName) {
   return `<span class="sppd-file-link"><button type="button" data-action="sppd-doc-preview" data-file="${escapeHtml(fileName)}" title="Preview ${escapeHtml(fileName)}">${icon("file-text")}<span>${escapeHtml(fileName)}</span></button><button class="sppd-file-download" type="button" data-action="sppd-doc-download" data-file="${escapeHtml(fileName)}" title="Download ${escapeHtml(fileName)}" aria-label="Download ${escapeHtml(fileName)}">${icon("download")}</button></span>`;
 }
 
-function sppdSummaryFileItem(label, fileName) {
-  return `<div class="sppd-summary-item"><span>${escapeHtml(label)}</span><strong>${renderSppdFileLink(fileName)}</strong></div>`;
+function getSppdAttachmentNames(item) {
+  if (Array.isArray(item?.attachments) && item.attachments.length) return item.attachments.filter(Boolean);
+  return item?.attachment ? [item.attachment] : [];
+}
+
+function renderSppdFileList(fileNames = []) {
+  const names = [...new Set(fileNames.filter(Boolean))];
+  if (!names.length) return `<span class="sppd-file-empty">-</span>`;
+  return `<div class="sppd-file-list">${names.map((fileName) => renderSppdFileLink(fileName)).join("")}</div>`;
+}
+
+function sppdSummaryFileItem(label, fileNames) {
+  const names = Array.isArray(fileNames) ? fileNames : [fileNames];
+  return `<div class="sppd-summary-item"><span>${escapeHtml(label)}</span>${renderSppdFileList(names)}</div>`;
 }
 
 function sppdReviewFilePair(label, fileName) {
@@ -1412,7 +1526,8 @@ function renderSppdCreateForm(formClass = "drawer-form") {
               <span>Request Date <b>*</b></span>
               <div class="sppd-request-date-control">
                 <input type="date" name="sppdDate" value="${escapeHtml(requestDateValue)}" readonly required>
-                <input class="sppd-inline-doc-number" name="docNo" value="[${escapeHtml(documentNumberValue)}]" readonly aria-label="Document Number">
+                <span class="sppd-doc-number-label">[${escapeHtml(documentNumberValue)}]</span>
+                <input type="hidden" name="docNo" value="${escapeHtml(documentNumberValue)}">
               </div>
             </label>
             <label class="sppd-detail-information-row sppd-agenda-field">
@@ -1465,7 +1580,7 @@ function renderSppdCreateForm(formClass = "drawer-form") {
               <span>Attachment</span>
               <div>
                 <input type="file" name="attachmentFile" accept=".pdf,.png,.jpg,.jpeg" multiple>
-                ${item.attachment ? `<small class="form-hint">Current: ${renderSppdFileLink(item.attachment)}</small>` : ""}
+                ${getSppdAttachmentNames(item).length ? `<div class="form-hint sppd-current-files"><span>Current:</span>${renderSppdFileList(getSppdAttachmentNames(item))}</div>` : ""}
               </div>
             </label>
           </div>
@@ -1607,7 +1722,8 @@ function syncSppdCreateDraftFromForm() {
   const item = getSppdCreateRequestItem();
   if (!item) return;
   const data = Object.fromEntries(new FormData(form).entries());
-  const attachmentFile = form.querySelector('[name="attachmentFile"]')?.files?.[0];
+  const attachmentFiles = [...(form.querySelector('[name="attachmentFile"]')?.files || [])];
+  attachmentFiles.forEach(registerSppdFile);
   const requester = db.employees.find((employee) => employee.id === data.requesterEmployeeId || employee.nik === data.requesterEmployeeId);
   const [area, cluster] = String(data.area || "").split("::");
 
@@ -1625,7 +1741,8 @@ function syncSppdCreateDraftFromForm() {
     sppdDate: data.sppdDate || item.sppdDate || todayIso(),
     assignmentStartDate: data.assignmentStartDate || item.assignmentStartDate || "",
     assignmentEndDate: data.assignmentEndDate || item.assignmentEndDate || "",
-    attachment: attachmentFile?.name || item.attachment || "",
+    attachments: attachmentFiles.length ? attachmentFiles.map((file) => file.name) : getSppdAttachmentNames(item),
+    attachment: attachmentFiles[0]?.name || item.attachment || "",
     remark: data.remark || item.remark || ""
   });
 }
@@ -1902,26 +2019,31 @@ function getDefaultSppdMasterType(viewType) {
   }[viewType] || "Jenis Agenda";
 }
 
-function openSppdOtherAllowanceModal(sppdId = "") {
+function openSppdOtherAllowanceModal(sppdId = "", employeeId = "") {
   const docId = sppdId || String(appState.selectedId || "").split("::")[0];
-  appState.modal = { type: "sppdOtherAllowance", sppdId: docId };
+  appState.modal = { type: "sppdOtherAllowance", sppdId: docId, employeeId };
   renderModal();
 }
 
 function renderSppdOtherAllowanceModal() {
   const item = findSppdRequest(appState.modal.sppdId);
+  const employee = item?.employees.find((row) => row.id === appState.modal.employeeId);
   return `
     <form class="modal" id="sppdOtherAllowanceForm" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h3>Add Cost</h3>
+        <div><h3>Add Cost</h3><small class="modal-kicker">${escapeHtml(employee ? `${employee.name} - ${employee.nik}` : item?.docNo || "")}</small></div>
         <button class="icon-button" type="button" aria-label="Close" data-action="close-modal">${icon("x")}</button>
       </div>
-      <div class="modal-body form-grid">
-        ${field("SPPD", `<input name="sppdId" value="${escapeHtml(item?.id || appState.modal.sppdId || "")}" readonly>`, false)}
-        ${field("Requester", `<input name="requesterName" value="${escapeHtml(item?.requesterName || "")}" required>`, true)}
-        ${field("Jenis Allowance", `<select name="type"><option>Transport</option><option>Hotel</option><option>Meals / Client Dinner</option><option>Akomodasi / Hotel</option><option>Lainnya</option></select>`, true)}
-        ${field("Nominal", `<input type="number" min="0" name="amount" required>`, true)}
-        ${field("Bukti Kwitansi", `<input type="file" name="proofFile" accept=".pdf,.png,.jpg,.jpeg">`, false)}
+      <div class="modal-body sppd-add-cost-modal-body">
+        <input type="hidden" name="sppdId" value="${escapeHtml(item?.id || appState.modal.sppdId || "")}">
+        <input type="hidden" name="employeeId" value="${escapeHtml(employee?.id || "")}">
+        <div class="table-wrap sppd-add-cost-entry-table-wrap">
+          <table class="sppd-data-table sppd-add-cost-entry-table">
+            <thead><tr><th>Type</th><th>Nominal</th><th>Kwitansi</th><th>Remark</th><th class="center">Action</th></tr></thead>
+            <tbody class="sppd-add-cost-entry-list">${renderSppdAddCostEntry(0)}</tbody>
+          </table>
+        </div>
+        <button class="btn neutral sppd-add-cost-row-button" type="button" data-action="sppd-add-cost-row">${icon("plus")} Add Type</button>
       </div>
       <div class="modal-footer">
         <button class="btn neutral" type="button" data-action="close-modal">Cancel</button>
@@ -2260,6 +2382,7 @@ function renderSppdEmployeeDrawer() {
   normalizeSppdRequest(item);
   const editable = appState.view === "employee";
   const stage = titleForSection(appState.section);
+  const isVerification = appState.section === "sppdVerification" || item.status === "In Verification" || appState.sppdDetailTab[item.id] === "Verification";
 
   return `
     <form class="drawer-form" id="sppdForm" data-sppd-region="${escapeHtml(employee.region || item.region || "")}" data-sppd-area="${escapeHtml(employee.area || item.area || "")}" data-sppd-cluster="${escapeHtml(employee.cluster || item.cluster || "")}" data-daily-rate="${escapeHtml(employee.dailyAllowance || 0)}">
@@ -2278,7 +2401,7 @@ function renderSppdEmployeeDrawer() {
         ${renderSppdEmployeeDrawerDetail(item, employee, editable, stage)}
       </div>
 
-      ${editable ? `<div class="drawer-actions"><button class="btn success" type="button" data-action="sppd-save-employee">${icon("save")} Save Employee</button></div>` : ""}
+      ${editable ? `<div class="drawer-actions"><button class="btn success" type="button" data-action="sppd-save-employee">${icon(isVerification ? "check" : "save")} ${isVerification ? "Verify" : "Save Employee"}</button></div>` : ""}
     </form>
   `;
 }
@@ -2289,45 +2412,49 @@ function renderSppdEmployeeDrawerDetail(item, employee, editable, stage) {
   const verified = employee.verifiedAllowance || calculated;
   const bankAccount = getSppdEmployeeBankAccount(employee);
   const showFinance = ["sppdVerification", "sppdApproval", "sppdPayment"].includes(appState.section) || item.status !== "Draft";
+  const startDate = employee.assignmentStartDate || item.assignmentStartDate || item.sppdDate || "-";
+  const endDate = employee.assignmentEndDate || item.assignmentEndDate || startDate;
+  const agendas = (employee.agendas || []).map((agenda) => agenda.name).filter(Boolean);
+  const agendaNames = agendas.length ? agendas : [item.agendaName || "-"];
+  const agendaType = employee.agendas?.[0]?.type || item.agendaType || "-";
+  const region = employee.region || item.region || "-";
+  const area = [employee.area || item.area, employee.cluster || item.cluster].filter(Boolean).join(" - ") || "-";
+  const assignmentInformation = editable ? `
+    <div class="sppd-drawer-section">
+      <h3>Assignment Information</h3>
+      <div class="form-grid sppd-verification-assignment-form">
+        ${field("Date", `<div class="sppd-assignment-date-range"><input type="date" name="employeeStartDate" value="${escapeHtml(startDate)}"><span>to</span><input type="date" name="employeeEndDate" value="${escapeHtml(endDate)}"><small data-role="employee-duration-label">${escapeHtml(duration)} Day(s)</small></div>`, false)}
+        ${field("Agenda", `<textarea name="employeeAgendaName">${escapeHtml(agendaNames.join("\n"))}</textarea>`, false)}
+        ${field("Agenda Type", renderSppdAgendaTypeSelect("employeeAgendaType", agendaType), false)}
+        ${field("Region", renderSppdMasterSelect("employeeRegion", "Region", region === "-" ? "" : region, "Pilih Region"), false)}
+        ${field("Area", renderSppdAreaSelect("employeeAreaCluster", employee.area || item.area || "", employee.cluster || item.cluster || ""), false)}
+        ${field("Level", renderSppdLevelSelect("employeeLevel", employee.level || "Pelaksana"), false)}
+      </div>
+    </div>
+  ` : `
+    <div class="sppd-drawer-section sppd-employee-view-section">
+      <h3>Assignment Information</h3>
+      <div class="sppd-employee-view-summary">
+        <div class="sppd-employee-view-row sppd-employee-date-row"><span>Date</span><div><strong>${escapeHtml(formatDate(startDate))}</strong><b>to</b><strong>${escapeHtml(formatDate(endDate))}</strong><small>${escapeHtml(duration)} Day(s)</small></div></div>
+        <div class="sppd-employee-view-row sppd-employee-agenda-row"><span>Agenda</span><div class="sppd-employee-view-agendas">${agendaNames.map((agenda) => `<em>${escapeHtml(agenda)}</em>`).join("")}</div></div>
+        <div class="sppd-employee-view-row"><span>Agenda Type</span><strong>${escapeHtml(agendaType)}</strong></div>
+        <div class="sppd-employee-view-row"><span>Region</span><strong>${escapeHtml(region)}</strong></div>
+        <div class="sppd-employee-view-row"><span>Area</span><strong>${escapeHtml(area)}</strong></div>
+        <div class="sppd-employee-view-row"><span>Level</span><strong>${escapeHtml(employee.level || "-")}</strong></div>
+      </div>
+    </div>
+  `;
+
+  if (!editable) return assignmentInformation;
 
   return `
-    <div class="sppd-drawer-section">
-      <h3>Employee Information</h3>
-      <div class="detail-grid">
-        ${detailItem("NIK", employee.nik || "-")}
-        ${detailItem("Position", employee.position || "-")}
-        ${detailItem("Division", employee.division || "-")}
-        ${detailItem("Level", employee.level || "-")}
-      </div>
-    </div>
-    <div class="sppd-drawer-section">
-      <h3>Assignment</h3>
-      <div class="form-grid">
-        ${field("Destination", `<input name="employeeDestination" value="${escapeHtml(employee.destination || "")}" ${editable ? "" : "disabled"}>`, false)}
-        ${field("Start Date", `<input type="date" name="employeeStartDate" value="${escapeHtml(employee.assignmentStartDate || "")}" ${editable ? "" : "disabled"}>`, false)}
-        ${field("End Date", `<input type="date" name="employeeEndDate" value="${escapeHtml(employee.assignmentEndDate || "")}" ${editable ? "" : "disabled"}>`, false)}
-        ${field("Duration", `<input name="employeeDuration" data-role="employee-duration" value="${escapeHtml(duration)} hari" disabled>`, false)}
-      </div>
-    </div>
-    <div class="sppd-drawer-section">
-      <div class="sppd-section-head">
-        <h3>Agenda</h3>
-      </div>
-      <div class="table-wrap">
-        <table class="sppd-data-table">
-          <thead><tr><th>Agenda</th><th>Type</th><th>Date</th><th>Time</th><th>Location</th></tr></thead>
-          <tbody>
-            ${employee.agendas.map((agenda) => `<tr><td><strong>${escapeHtml(agenda.name)}</strong><br><small>${escapeHtml(agenda.remark || "-")}</small></td><td>${escapeHtml(agenda.type || "-")}</td><td>${escapeHtml(agenda.date || "-")}</td><td>${escapeHtml(`${agenda.startTime || "-"} - ${agenda.endTime || "-"}`)}</td><td>${escapeHtml(agenda.location || "-")}</td></tr>`).join("") || emptyRow(5, "Belum ada agenda.")}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    ${assignmentInformation}
     ${showFinance ? `
       <div class="sppd-drawer-section">
         <h3>Allowance Verification</h3>
         ${editable ? `
           <div class="form-grid">
-            ${field("Master Rate", `<input value="${escapeHtml(`${formatRupiah(employee.dailyAllowance || 0)} / day`)}" disabled>`, false)}
+            ${field("Master Rate", `<input data-role="employee-master-rate" value="${escapeHtml(`${formatRupiah(employee.dailyAllowance || 0)} / day`)}" disabled>`, false)}
             ${field("Effective Days", `<input data-role="employee-effective-days" value="${escapeHtml(`${duration} hari`)}" disabled>`, false)}
             ${field("Calculated", `<input data-role="employee-calculated-allowance" value="${escapeHtml(formatRupiah(calculated))}" disabled>`, false)}
             ${field("Verified Allowance", `<input type="number" min="0" name="employeeVerifiedAllowance" data-role="employee-verified-allowance" value="${escapeHtml(verified)}">`, false)}
@@ -2581,6 +2708,31 @@ function renderSppdOtherAllowanceTab(item) {
   `;
 }
 
+function renderSppdAddCostEntry(index) {
+  return `
+    <tr class="sppd-add-cost-entry" data-cost-index="${escapeHtml(index)}">
+      <td><select name="type_${index}" aria-label="Type"><option>Transport</option><option>Hotel</option><option>Meals / Client Dinner</option><option>Akomodasi / Hotel</option><option>Lainnya</option></select></td>
+      <td><input type="number" min="0" name="amount_${index}" placeholder="0" aria-label="Nominal" required></td>
+      <td><input type="file" name="proofFile_${index}" accept=".pdf,.png,.jpg,.jpeg" aria-label="Kwitansi" required></td>
+      <td><input name="remark_${index}" placeholder="Catatan" aria-label="Remark"></td>
+      <td class="center">${index ? `<button class="action-icon danger" type="button" title="Remove" aria-label="Remove" data-action="sppd-remove-cost-row">${icon("trash")}</button>` : `<span class="sppd-file-empty">-</span>`}</td>
+    </tr>
+  `;
+}
+
+function addSppdCostEntry() {
+  const list = document.querySelector("#sppdOtherAllowanceForm .sppd-add-cost-entry-list");
+  if (!list) return;
+  const indexes = [...list.querySelectorAll(".sppd-add-cost-entry")].map((row) => Number(row.dataset.costIndex) || 0);
+  const index = indexes.length ? Math.max(...indexes) + 1 : 0;
+  list.insertAdjacentHTML("beforeend", renderSppdAddCostEntry(index));
+  renderIcons(list.lastElementChild);
+}
+
+function removeSppdCostEntry(button) {
+  button?.closest(".sppd-add-cost-entry")?.remove();
+}
+
 function openSppdConfirmAction(payload) {
   appState.modal = { type: "sppdConfirmAction", ...payload };
   renderModal();
@@ -2642,16 +2794,32 @@ function renderSppdOtherAllowanceTabView(item) {
       <div class="panel-header">
         <div><h2>Add Cost</h2><small class="panel-kicker">Tambahkan dan periksa biaya perjalanan di luar allowance utama.</small></div>
         <div class="panel-actions">
-          <button class="btn neutral" type="button" data-action="sppd-other-new">${icon("plus")} Add Cost</button>
           ${getSppdWorkflowStage(item) === "Add Cost" ? `<button class="btn success" type="button" data-action="sppd-complete" data-id="${escapeHtml(item.id)}">${icon("check")} Complete</button>` : ""}
         </div>
       </div>
       <div class="panel-body sppd-stage-view">
         <div class="sppd-review-section">
-          <h4>Allowance List</h4>
-          ${renderSppdOtherAllowanceTable(rows)}
+          <h4>Employee Add Cost</h4>
+          ${renderSppdEmployeeAddCostTable(item, rows)}
         </div>
       </div>
+    </div>
+  `;
+}
+
+function renderSppdEmployeeAddCostTable(item, rows) {
+  return `
+    <div class="table-wrap sppd-add-cost-table-wrap">
+      <table class="sppd-data-table sppd-employee-add-cost-table">
+        <colgroup><col class="employee-col"><col class="division-col"><col class="agenda-col"><col class="amount-col"><col class="proof-col"><col class="status-col"><col class="remark-col"><col class="action-col"></colgroup>
+        <thead><tr><th>Employee</th><th>Division</th><th>Agenda</th><th class="money-col">Nominal</th><th class="center">Bukti Kwitansi</th><th class="center">Payment Status</th><th>Payment Remark</th><th class="center">Action</th></tr></thead>
+        <tbody>${item.employees.map((employee) => {
+          const employeeRows = rows.filter((row) => row.employeeId === employee.id || (!row.employeeId && row.requesterName === employee.name));
+          const agendaNames = (employee.agendas || []).map((agenda) => agenda.name).filter(Boolean);
+          const renderCostValues = (renderer) => employeeRows.length ? `<div class="sppd-cost-value-list">${employeeRows.map(renderer).join("")}</div>` : `<span class="sppd-file-empty">-</span>`;
+          return `<tr><td><strong>${escapeHtml(employee.name)}</strong><small>${escapeHtml(employee.nik || "-")}</small></td><td><strong>${escapeHtml(employee.division || "-")}</strong><small>${escapeHtml(employee.position || "-")}</small></td><td><div class="sppd-agenda-name-list">${(agendaNames.length ? agendaNames : [item.agendaName || "-"]).map((agenda) => `<span>${escapeHtml(agenda)}</span>`).join("")}</div></td><td class="money-col">${renderCostValues((row) => `<span><strong>${formatRupiah(row.amount)}</strong><small>${escapeHtml(row.type)}${row.remark ? ` - ${escapeHtml(row.remark)}` : ""}</small></span>`)}</td><td class="center">${renderCostValues((row) => renderSppdFileLink(row.proof))}</td><td class="center">${renderCostValues((row) => statusPill(row.status || "Submitted"))}</td><td>${renderCostValues((row) => `<span>${escapeHtml(row.paymentRemark || "-")}</span>`)}</td><td class="center"><button class="btn primary sppd-add-cost-button" type="button" title="Input Add Cost" data-action="sppd-other-new" data-id="${escapeHtml(item.id)}" data-employee-id="${escapeHtml(employee.id)}">${icon("plus")} Add Cost</button></td></tr>`;
+        }).join("") || emptyRow(8, "Belum ada employee.")}</tbody>
+      </table>
     </div>
   `;
 }
@@ -2944,7 +3112,7 @@ function renderSppdDrawerAction(stage, item, editable) {
       if (appState.view === "document") {
         return `
           <div class="drawer-actions">
-            <button class="btn success" type="button" data-action="sppd-status" data-id="${escapeHtml(item.id)}" data-status="Submitted">Submit Request</button>
+            <button class="btn success" type="button" data-action="sppd-status" data-id="${escapeHtml(item.id)}" data-status="Request">Submit Request</button>
           </div>
         `;
       }
@@ -2962,6 +3130,9 @@ function renderSppdDrawerAction(stage, item, editable) {
           <button class="btn success" type="button" data-action="sppd-status" data-id="${escapeHtml(item.id)}" data-status="Approved">Approve</button>
         </div>
       `;
+    }
+    if (item.status === "Request") {
+      return `<div class="drawer-actions"><button class="btn success" type="button" data-action="sppd-status" data-id="${escapeHtml(item.id)}" data-status="Submitted">Submit to Approval</button></div>`;
     }
     if (["Approved", "In Verification"].includes(item.status)) {
       return `
@@ -3042,6 +3213,7 @@ function makeEmptySppdRequest() {
     duration: 1,
     remark: "",
     attachment: "",
+    attachments: [],
     status: "Draft",
     workflowStage: "Request",
     paymentStatus: "Unpaid",
@@ -3073,8 +3245,8 @@ function saveSppdRequest(status) {
   const form = document.getElementById("sppdForm");
   if (!form) return;
   const data = Object.fromEntries(new FormData(form).entries());
-  const attachmentFile = form.querySelector('[name="attachmentFile"]')?.files?.[0];
-  registerSppdFile(attachmentFile);
+  const attachmentFiles = [...(form.querySelector('[name="attachmentFile"]')?.files || [])];
+  attachmentFiles.forEach(registerSppdFile);
   const isAdd = appState.view === "add" && !appState.selectedId;
   const item = isAdd ? getSppdCreateRequestItem() : findSppdRequest(appState.selectedId);
   if (!item) return;
@@ -3091,7 +3263,7 @@ function saveSppdRequest(status) {
     });
     if (!employeeRowIds.length || invalidEmployee) {
       appState.sppdCreateStep = 2;
-      showToast(!employeeRowIds.length ? "Tambahkan employee terlebih dahulu." : "Lengkapi assignment dan agenda employee sebelum submit.");
+      showToast(!employeeRowIds.length ? "Tambahkan employee terlebih dahulu." : "Lengkapi assignment employee sebelum submit.");
       render();
       return;
     }
@@ -3119,10 +3291,11 @@ function saveSppdRequest(status) {
     assignmentEndDate: data.assignmentEndDate || data.assignmentStartDate || data.sppdDate || "",
     assignmentEndTime: data.assignmentEndTime || "18:00",
     duration: Number(data.durationOverride || data.duration || item.duration || 1),
-    attachment: attachmentFile?.name || item.attachment || "",
+    attachments: attachmentFiles.length ? attachmentFiles.map((file) => file.name) : getSppdAttachmentNames(item),
+    attachment: attachmentFiles[0]?.name || item.attachment || "",
     remark: data.remark || item.remark || "",
-    status,
-    workflowStage: status === "Submitted" ? "Approval" : "Request"
+    status: status === "Submitted" ? "Request" : status,
+    workflowStage: "Request"
   });
 
   if (isAdd) {
@@ -3192,9 +3365,16 @@ function renderSppdDraftEmployeeModal() {
   const employee = getSppdDraftRowEmployee(employeeId);
   if (!employee) return "";
   const detail = getSppdDraftEmployeeDetail(employeeId);
-  const agendaRows = detail.agendas || [];
+  const request = getSppdCreateRequestItem() || {};
   const selectedLevel = detail.level || "Pelaksana";
-  const selectedRegion = detail.region || "";
+  const selectedRegion = detail.region || request.region || "";
+  const selectedArea = detail.area || request.area || "";
+  const selectedCluster = detail.cluster || request.cluster || "";
+  const selectedAgendaType = detail.agendaType || detail.agendas?.[0]?.type || request.agendaType || "";
+  const selectedAgenda = detail.agendaName || detail.agendas?.[0]?.name || request.agendaName || "";
+  const selectedRemark = detail.remark || detail.agendas?.[0]?.remark || request.remark || "";
+  const selectedStartDate = detail.assignmentStartDate || request.assignmentStartDate || request.sppdDate || "";
+  const selectedEndDate = detail.assignmentEndDate || request.assignmentEndDate || selectedStartDate;
   return `
     <form class="modal sppd-employee-assignment-modal ${readOnly ? "is-readonly" : ""}" id="sppdDraftEmployeeForm" role="dialog" aria-modal="true">
       <div class="modal-header">
@@ -3219,21 +3399,13 @@ function renderSppdDraftEmployeeModal() {
         <div class="sppd-modal-section">
           <h4>Assignment</h4>
           <div class="form-grid sppd-assignment-grid">
-            ${field("Destination", `<input name="destination" value="${escapeHtml(detail.destination || "")}" placeholder="Contoh: Kantor Jakarta / Hotel Bandung / Venue Training" required>`, true)}
-            ${field("Region", renderSppdMasterSelect("region", "Region", selectedRegion, "Pilih Region"), true)}
-            ${field("Area / Cluster", renderSppdAreaSelect("areaCluster", detail.area || "", detail.cluster || ""), true)}
+            ${field("Start Date - End Date Agenda", `<div class="sppd-assignment-date-range"><input type="date" name="assignmentStartDate" value="${escapeHtml(selectedStartDate)}" required><span>to</span><input type="date" name="assignmentEndDate" value="${escapeHtml(selectedEndDate)}" required></div>`, true)}
+            ${field("Agenda", `<textarea name="agendaName" placeholder="Tuliskan agenda perjalanan" required>${escapeHtml(selectedAgenda)}</textarea>`, true)}
+            ${field("Agenda Type", renderSppdAgendaTypeSelect("agendaType", selectedAgendaType), true)}
             ${field("Level", renderSppdLevelSelect("level", selectedLevel), true)}
-            ${field("Start Date", `<input type="date" name="assignmentStartDate" value="${escapeHtml(detail.assignmentStartDate || "")}" required>`, true)}
-            ${field("End Date", `<input type="date" name="assignmentEndDate" value="${escapeHtml(detail.assignmentEndDate || detail.assignmentStartDate || "")}" required>`, true)}
-          </div>
-        </div>
-        <div class="sppd-modal-section">
-          <div class="sppd-modal-section-head">
-            <h4>Agenda List</h4>
-            ${readOnly ? "" : `<button class="btn neutral" type="button" data-action="sppd-add-agenda-row">${icon("plus")} Add Agenda</button>`}
-          </div>
-          <div class="sppd-agenda-list">
-            ${agendaRows.map((agenda, index) => renderSppdAgendaDraftRow(agenda, index, detail.destination || "")).join("") || `<div class="empty-state compact">${readOnly ? "Belum ada agenda." : "Belum ada agenda. Klik Add Agenda untuk menambahkan agenda perjalanan."}</div>`}
+            ${field("Area", renderSppdAreaSelect("areaCluster", selectedArea, selectedCluster), true)}
+            ${field("Region", renderSppdMasterSelect("region", "Region", selectedRegion, "Pilih Region"), true)}
+            ${field("Remark", `<textarea name="remark" placeholder="Catatan assignment">${escapeHtml(selectedRemark)}</textarea>`, false)}
           </div>
         </div>
       </div>
@@ -3306,6 +3478,7 @@ function updateSppdStatus(id, status) {
   if (!item) return;
   const stage = getSppdWorkflowStage(item);
   const allowed = status === "Draft"
+    || status === "Request"
     || status === "Submitted"
     || (status === "Approved" && stage === "Approval")
     || (status === "In Verification" && stage === "Verification")
@@ -3317,6 +3490,7 @@ function updateSppdStatus(id, status) {
   item.status = status;
   item.workflowStage = {
     Draft: "Request",
+    Request: "Request",
     Submitted: "Approval",
     Approved: "Verification",
     "In Verification": "Verification",
@@ -3334,7 +3508,8 @@ function getDefaultSppdDetailTabForStatus(item) {
   if (stage === "Verification") return "Verification";
   if (stage === "Payment") return "Payment";
   if (stage === "Add Cost") return "Add Cost";
-  return "Overview";
+  if (stage === "Complete") return "Complete";
+  return "Request";
 }
 
 function collectSppdStageFields(id) {
@@ -3399,7 +3574,7 @@ function completeSppdRequest(id) {
   item.completedAt = todayIso();
   item.updatedAt = todayIso();
   window.sppdFormDirty = false;
-  appState.sppdDetailTab[id] = "Overview";
+  appState.sppdDetailTab[id] = "Complete";
   showToast("SPPD completed.");
   render();
 }
@@ -3531,29 +3706,26 @@ function applySppdEmployeePicker(id = "draft") {
 function saveSppdDraftEmployeeAssignment(employeeId, detailStatus = "Draft", options = {}) {
   const form = document.getElementById("sppdDraftEmployeeForm");
   if (!form || !employeeId) return;
+  const currentDetail = getSppdDraftEmployeeDetail(employeeId);
+  const request = getSppdCreateRequestItem() || {};
   const data = Object.fromEntries(new FormData(form).entries());
   const duration = calculateDateDuration(data.assignmentStartDate, data.assignmentEndDate);
   const [area, cluster] = String(data.areaCluster || "").split("::");
-  const agendaIndexes = [...form.querySelectorAll(".sppd-agenda-row")]
-    .map((row) => Number(row.dataset.agendaIndex))
-    .filter((index) => Number.isFinite(index));
-  const agendas = agendaIndexes.map((index) => {
-    const agendaType = data[`agendaType_${index}`] === "Lainnya" ? data[`agendaTypeOther_${index}`] || "Lainnya" : data[`agendaType_${index}`] || "";
-    return {
-      id: `${employeeId}-AGENDA-${index + 1}`,
-      name: data[`agendaName_${index}`] || "",
-      type: agendaType,
-      typeOther: data[`agendaType_${index}`] === "Lainnya" ? data[`agendaTypeOther_${index}`] || "" : "",
-      date: data[`agendaDate_${index}`] || "",
-      startTime: data[`agendaStartTime_${index}`] || "09:00",
-      endTime: data[`agendaEndTime_${index}`] || "17:00",
-      location: data[`agendaLocation_${index}`] || data.destination || "",
-      remark: data[`agendaRemark_${index}`] || ""
-    };
-  }).filter((agenda) => agenda.name || agenda.date || agenda.type || agenda.location);
+  const agendaType = data.agendaType === "Lainnya" ? data.agendaTypeOther || "Lainnya" : data.agendaType || "";
+  const agendas = [{
+    id: currentDetail.agendas?.[0]?.id || `${employeeId}-AGENDA-1`,
+    name: data.agendaName || request.agendaName || "",
+    type: agendaType || request.agendaType || "",
+    typeOther: data.agendaType === "Lainnya" ? data.agendaTypeOther || "" : "",
+    date: data.assignmentStartDate || request.agendaDate || "",
+    startTime: request.agendaTime || "09:00",
+    endTime: request.agendaEndTime || "17:00",
+    location: currentDetail.destination || request.agendaLocation || "",
+    remark: data.remark || ""
+  }];
   appState.sppdDraftEmployeeDetails[employeeId] = {
     employeeId: getSppdDraftRowEmployeeId(employeeId),
-    destination: data.destination || "",
+    destination: currentDetail.destination || request.agendaLocation || "",
     level: data.level || "Pelaksana",
     region: data.region || "",
     area: area || "",
@@ -3562,6 +3734,9 @@ function saveSppdDraftEmployeeAssignment(employeeId, detailStatus = "Draft", opt
     assignmentEndDate: data.assignmentEndDate || data.assignmentStartDate || "",
     duration,
     detailStatus,
+    agendaName: data.agendaName || request.agendaName || "",
+    agendaType: agendaType || request.agendaType || "",
+    remark: data.remark || "",
     agendas
   };
   if (options.keepModalOpen) return;
@@ -3574,7 +3749,7 @@ function saveSppdDraftEmployeeAssignment(employeeId, detailStatus = "Draft", opt
 function confirmSppdDraftEmployee(employeeId) {
   const detail = getSppdDraftEmployeeDetail(employeeId);
   if (!hasCompleteSppdDraftEmployeeDetail(detail)) {
-    showToast("Lengkapi assignment dan agenda employee sebelum confirm.");
+    showToast("Lengkapi assignment employee sebelum confirm.");
     appState.modal = { type: "sppdDraftEmployee", employeeId, mode: "edit" };
     renderModal();
     return;
@@ -3658,27 +3833,39 @@ function updateSppdEmployeeLiveCalculation(form, verifiedWasEdited = false) {
   if (!form) return;
   const start = form.querySelector('[name="employeeStartDate"]')?.value || "";
   const end = form.querySelector('[name="employeeEndDate"]')?.value || start;
-  const rate = Number(form.dataset.dailyRate || 0);
-  const duration = calculateSppdLiveDuration(start, end, form.dataset.sppdRegion || "", form.dataset.sppdArea || "", form.dataset.sppdCluster || "");
+  const level = form.querySelector('[name="employeeLevel"]')?.value || "";
+  const region = form.querySelector('[name="employeeRegion"]')?.value || form.dataset.sppdRegion || "";
+  const [area, cluster] = String(form.querySelector('[name="employeeAreaCluster"]')?.value || `${form.dataset.sppdArea || ""}::${form.dataset.sppdCluster || ""}`).split("::");
+  const docId = String(appState.selectedId || "").split("::")[0];
+  const item = findSppdRequest(docId);
+  const levelRate = level && item ? Number(getSppdLevelAllowance(level, item) || 0) : 0;
+  const rate = levelRate || Number(form.dataset.dailyRate || 0);
+  form.dataset.dailyRate = String(rate);
+  const duration = calculateSppdLiveDuration(start, end, region, area || "", cluster || "");
   const calculated = rate * duration;
   const durationInput = form.querySelector('[data-role="employee-duration"]');
+  const durationLabel = form.querySelector('[data-role="employee-duration-label"]');
   const effectiveInput = form.querySelector('[data-role="employee-effective-days"]');
+  const masterRateInput = form.querySelector('[data-role="employee-master-rate"]');
   const calculatedInput = form.querySelector('[data-role="employee-calculated-allowance"]');
   const verifiedInput = form.querySelector('[data-role="employee-verified-allowance"]');
   if (durationInput) durationInput.value = `${duration} hari`;
+  if (durationLabel) durationLabel.textContent = `${duration} Day(s)`;
   if (effectiveInput) effectiveInput.value = `${duration} hari`;
+  if (masterRateInput) masterRateInput.value = `${formatRupiah(rate)} / day`;
   if (calculatedInput) calculatedInput.value = formatRupiah(calculated);
   if (verifiedInput && !verifiedWasEdited) verifiedInput.value = calculated;
 }
 
 function hasCompleteSppdDraftEmployeeDetail(detail = {}) {
   return Boolean(
-    detail.destination &&
     detail.assignmentStartDate &&
     detail.assignmentEndDate &&
-    Array.isArray(detail.agendas) &&
-    detail.agendas.length &&
-    detail.agendas.every((agenda) => agenda.name && agenda.date && agenda.location)
+    detail.agendaName &&
+    detail.agendaType &&
+    detail.level &&
+    detail.area &&
+    detail.region
   );
 }
 
@@ -3728,8 +3915,28 @@ function saveSppdEmployeeDetail() {
   if (data.employeeDestination !== undefined) employee.destination = data.employeeDestination;
   if (data.employeeStartDate !== undefined) employee.assignmentStartDate = data.employeeStartDate;
   if (data.employeeEndDate !== undefined) employee.assignmentEndDate = data.employeeEndDate;
+  if (data.employeeRegion !== undefined) employee.region = data.employeeRegion;
+  if (data.employeeAreaCluster !== undefined) {
+    const [area, cluster] = String(data.employeeAreaCluster || "").split("::");
+    employee.area = area || "";
+    employee.cluster = cluster || "";
+  }
+  if (data.employeeLevel !== undefined) employee.level = data.employeeLevel || employee.level;
+  if (data.employeeAgendaName !== undefined || data.employeeAgendaType !== undefined) {
+    const agenda = employee.agendas?.[0] || {};
+    employee.agendas = [{
+      ...agenda,
+      id: agenda.id || `${employee.id}-AGENDA-1`,
+      name: data.employeeAgendaName || agenda.name || item.agendaName || "",
+      type: data.employeeAgendaType || agenda.type || item.agendaType || "",
+      date: employee.assignmentStartDate || agenda.date || "",
+      location: employee.destination || agenda.location || item.agendaLocation || ""
+    }];
+  }
   employee.duration = getSppdEmployeeEffectiveDuration(item, employee);
-  const rate = Number(employee.dailyAllowance || getSppdLevelAllowance(employee.level, item) || 0);
+  const levelRate = Number(getSppdLevelAllowance(employee.level, item) || 0);
+  if (levelRate) employee.dailyAllowance = levelRate;
+  const rate = Number(employee.dailyAllowance || levelRate || 0);
   employee.calculatedAllowance = rate * Number(employee.duration || item.duration || 1);
   if (data.employeeVerifiedAllowance !== undefined) employee.verifiedAllowance = Number(String(data.employeeVerifiedAllowance).replace(/[^\d]/g, "") || employee.calculatedAllowance || 0);
   if (data.employeeVerifiedBankAccount !== undefined) employee.verifiedBankAccount = data.employeeVerifiedBankAccount || getEmployeeReferenceBankAccount(employee);
@@ -4051,18 +4258,27 @@ function saveSppdOtherAllowance() {
   const form = document.getElementById("sppdOtherAllowanceForm");
   if (!form) return;
   const data = Object.fromEntries(new FormData(form).entries());
-  const proofFile = form.querySelector('[name="proofFile"]')?.files?.[0];
-  registerSppdFile(proofFile);
-  const proof = proofFile?.name || "";
-  db.sppdOtherAllowances.unshift({
-    id: `OA-${String(db.sppdOtherAllowances.length + 1).padStart(3, "0")}`,
-    sppdId: data.sppdId || "",
-    requesterName: data.requesterName || "",
-    type: data.type || "Lainnya",
-    amount: Number(data.amount || 0),
-    status: "Submitted",
-    transferDate: "",
-    proof
+  const item = findSppdRequest(data.sppdId);
+  const employee = item?.employees.find((row) => row.id === data.employeeId);
+  const entries = [...form.querySelectorAll(".sppd-add-cost-entry")];
+  const nextNumber = db.sppdOtherAllowances.length + 1;
+  entries.forEach((entry, offset) => {
+    const index = Number(entry.dataset.costIndex) || 0;
+    const proofFile = form.querySelector(`[name="proofFile_${index}"]`)?.files?.[0];
+    registerSppdFile(proofFile);
+    db.sppdOtherAllowances.unshift({
+      id: `OA-${String(nextNumber + offset).padStart(3, "0")}`,
+      sppdId: data.sppdId || "",
+      employeeId: employee?.id || data.employeeId || "",
+      requesterName: employee?.name || "",
+      type: data[`type_${index}`] || "Lainnya",
+      amount: Number(data[`amount_${index}`] || 0),
+      status: "Submitted",
+      transferDate: "",
+      proof: proofFile?.name || "",
+      remark: data[`remark_${index}`] || "",
+      paymentRemark: ""
+    });
   });
   appState.modal = null;
   showToast("Add cost submitted.");

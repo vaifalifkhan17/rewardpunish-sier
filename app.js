@@ -353,8 +353,8 @@ db.sppdRequests = [
 ];
 
 db.sppdOtherAllowances = [
-  { id: "OA-001", sppdId: "SPPD-2026-005", requesterName: "Anindya Putri", type: "Transport", amount: 275000, status: "Submitted", transferDate: "", proof: "" },
-  { id: "OA-002", sppdId: "SPPD-2026-005", requesterName: "Rizky Pramana", type: "Transport", amount: 250000, status: "Paid", transferDate: "2026-08-19", proof: "transport-002.pdf" }
+  { id: "OA-001", sppdId: "SPPD-2026-005", requesterName: "Anindya Putri", type: "Transport", amount: 275000, status: "Submitted", transferDate: "", proof: "", paymentRemark: "Menunggu proses payment." },
+  { id: "OA-002", sppdId: "SPPD-2026-005", requesterName: "Rizky Pramana", type: "Transport", amount: 250000, status: "Paid", transferDate: "2026-08-19", proof: "transport-002.pdf", paymentRemark: "Sudah dibayarkan sesuai kwitansi." }
 ];
 
 db.sppdMaster = [
@@ -5725,6 +5725,8 @@ document.addEventListener("click", (event) => {
 
   if (action === "detail") {
     if (["sppdDashboard", "sppdRequestList", "sppdCompletedList", "sppdVerification", "sppdApproval", "sppdPayment"].includes(target.dataset.section)) {
+      const sppdItem = findSppdRequest(target.dataset.id);
+      if (sppdItem) appState.sppdDetailTab[target.dataset.id] = getDefaultSppdDetailTabForStatus(sppdItem);
       setSection(target.dataset.section, "document", target.dataset.id);
       return;
     }
@@ -5998,7 +6000,15 @@ document.addEventListener("click", (event) => {
   }
 
   if (action === "sppd-other-new") {
-    openSppdOtherAllowanceModal(target.dataset.id);
+    openSppdOtherAllowanceModal(target.dataset.id, target.dataset.employeeId);
+  }
+
+  if (action === "sppd-add-cost-row") {
+    addSppdCostEntry();
+  }
+
+  if (action === "sppd-remove-cost-row") {
+    removeSppdCostEntry(target);
   }
 
   if (action === "sppd-tab") {
@@ -6341,7 +6351,7 @@ document.addEventListener("input", (event) => {
     updateRuleModalTotals();
   }
 
-  if (event.target.closest("#sppdForm") && ["employeeStartDate", "employeeEndDate", "employeeVerifiedAllowance"].includes(event.target.name)) {
+  if (event.target.closest("#sppdForm") && ["employeeStartDate", "employeeEndDate", "employeeLevel", "employeeRegion", "employeeAreaCluster", "employeeVerifiedAllowance"].includes(event.target.name)) {
     updateSppdEmployeeLiveCalculation(event.target.closest("#sppdForm"), event.target.name === "employeeVerifiedAllowance");
   }
 
@@ -6382,7 +6392,7 @@ document.addEventListener("change", (event) => {
     if (durationLabel) durationLabel.textContent = `${calculateDateDuration(startInput?.value, endInput?.value)} Day(s)`;
   }
 
-  if (event.target.closest("#sppdForm") && ["employeeStartDate", "employeeEndDate"].includes(event.target.name)) {
+  if (event.target.closest("#sppdForm") && ["employeeStartDate", "employeeEndDate", "employeeLevel", "employeeRegion", "employeeAreaCluster"].includes(event.target.name)) {
     updateSppdEmployeeLiveCalculation(event.target.closest("#sppdForm"));
   }
 
