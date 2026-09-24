@@ -207,12 +207,12 @@ db.sppdRequests = [
     docNo: "001/SPPD/08/2026",
     requesterName: "Roki Syah Al Zarkasi",
     requesterDivision: "Human Capital",
-    agendaName: "Koordinasi Implementasi HCMS",
+    agendaName: "HCMS Implementation Coordination",
     agendaDate: "2026-08-24",
     agendaTime: "09:00",
     agendaLocation: "Jakarta",
-    agendaType: "Rapat",
-    region: "Dalam Negeri",
+    agendaType: "Meeting",
+    region: "Domestic",
     area: "Area 1",
     cluster: "Jawa",
     sppdDate: "2026-08-23",
@@ -221,7 +221,7 @@ db.sppdRequests = [
     assignmentEndDate: "2026-08-24",
     assignmentEndTime: "18:00",
     duration: 2,
-    remark: "Kunjungan koordinasi dan review proses.",
+    remark: "Coordination visit and process review.",
     attachment: "undangan-hcms.pdf",
     status: "Draft",
     paymentStatus: "Unpaid",
@@ -237,12 +237,12 @@ db.sppdRequests = [
     docNo: "002/SPPD/08/2026",
     requesterName: "Bima Prasetya",
     requesterDivision: "Commercial",
-    agendaName: "Pelatihan Business Development",
+    agendaName: "Business Development Training",
     agendaDate: "2026-08-28",
     agendaTime: "10:00",
     agendaLocation: "Surabaya",
-    agendaType: "Pelatihan",
-    region: "Dalam Negeri",
+    agendaType: "Training",
+    region: "Domestic",
     area: "Area 2",
     cluster: "Jawa",
     sppdDate: "2026-08-28",
@@ -251,7 +251,7 @@ db.sppdRequests = [
     assignmentEndDate: "2026-08-28",
     assignmentEndTime: "18:00",
     duration: 1,
-    remark: "Pelatihan eksternal.",
+    remark: "External training.",
     attachment: "surat-tugas-bd.pdf",
     status: "Submitted",
     paymentStatus: "Unpaid",
@@ -266,12 +266,12 @@ db.sppdRequests = [
     docNo: "003/SPPD/08/2026",
     requesterName: "Nadia Safitri",
     requesterDivision: "Finance",
-    agendaName: "Rekonsiliasi Anggaran Cabang",
+    agendaName: "Branch Budget Reconciliation",
     agendaDate: "2026-08-21",
     agendaTime: "13:00",
     agendaLocation: "Gresik",
-    agendaType: "Rapat",
-    region: "Dalam Negeri",
+    agendaType: "Meeting",
+    region: "Domestic",
     area: "Area 1",
     cluster: "Jawa",
     sppdDate: "2026-08-21",
@@ -280,7 +280,7 @@ db.sppdRequests = [
     assignmentEndDate: "2026-08-22",
     assignmentEndTime: "18:00",
     duration: 2,
-    remark: "Sudah diverifikasi, menunggu proses approval.",
+    remark: "Verified and waiting for approval.",
     attachment: "memo-rekonsiliasi-anggaran.pdf",
     status: "Verified",
     paymentStatus: "Unpaid",
@@ -296,12 +296,12 @@ db.sppdRequests = [
     docNo: "004/SPPD/08/2026",
     requesterName: "Maya Larasati",
     requesterDivision: "Legal",
-    agendaName: "Pendampingan Legal Review",
+    agendaName: "Legal Review Assistance",
     agendaDate: "2026-08-22",
     agendaTime: "11:00",
     agendaLocation: "Semarang",
-    agendaType: "Pendampingan",
-    region: "Dalam Negeri",
+    agendaType: "Assistance",
+    region: "Domestic",
     area: "Area 2",
     cluster: "Jawa",
     sppdDate: "2026-08-22",
@@ -310,7 +310,7 @@ db.sppdRequests = [
     assignmentEndDate: "2026-08-24",
     assignmentEndTime: "18:00",
     duration: 3,
-    remark: "Approved, menunggu upload bukti transfer allowance.",
+    remark: "Approved and waiting for allowance transfer proof.",
     attachment: "surat-undangan-legal-review.pdf",
     status: "Approved",
     paymentStatus: "Unpaid",
@@ -325,12 +325,12 @@ db.sppdRequests = [
     docNo: "005/SPPD/08/2026",
     requesterName: "Anindya Putri",
     requesterDivision: "Operation",
-    agendaName: "Site Visit Kawasan",
+    agendaName: "Industrial Area Site Visit",
     agendaDate: "2026-08-18",
     agendaTime: "08:30",
     agendaLocation: "Pasuruan",
     agendaType: "Site Visit",
-    region: "Dalam Negeri",
+    region: "Domestic",
     area: "Area 3",
     cluster: "Jawa",
     sppdDate: "2026-08-18",
@@ -339,7 +339,7 @@ db.sppdRequests = [
     assignmentEndDate: "2026-08-18",
     assignmentEndTime: "18:00",
     duration: 1,
-    remark: "Pemeriksaan aktivitas operasional.",
+    remark: "Operational activity inspection.",
     attachment: "memo-site-visit.pdf",
     status: "Approved",
     paymentStatus: "Paid",
@@ -349,19 +349,87 @@ db.sppdRequests = [
       { id: "SPPD-EMP-007", name: "Anindya Putri", nik: "710051", division: "Operation", position: "Operation Analyst", level: "Staff", dailyAllowance: 350000, assignmentLetter: "Created" },
       { id: "SPPD-EMP-008", name: "Rizky Pramana", nik: "710063", division: "Engineering", position: "Maintenance Engineer", level: "Staff", dailyAllowance: 350000, assignmentLetter: "Created" }
     ]
+  },
+  {
+    id: "SPPD-2026-006",
+    docNo: "006/SPPD/09/2026",
+    requesterName: "Dewi Kartika",
+    requesterDivision: "Finance",
+    requesterNik: "710027",
+    requesterPosition: "Staff Finance",
+    agendaName: "Quarterly Finance Coordination",
+    agendaDate: "2026-09-25",
+    agendaTime: "09:00",
+    agendaLocation: "Surabaya",
+    agendaType: "Meeting",
+    region: "Domestic",
+    area: "Area 1",
+    cluster: "Java",
+    sppdDate: "2026-09-24",
+    requestDate: "2026-09-24",
+    assignmentStartDate: "2026-09-25",
+    assignmentStartTime: "08:00",
+    assignmentEndDate: "2026-09-26",
+    assignmentEndTime: "17:00",
+    duration: 2,
+    remark: "New request ready to enter the approval process.",
+    attachment: "finance-coordination.pdf",
+    status: "Request",
+    workflowStage: "Request",
+    paymentStatus: "Unpaid",
+    transferDate: "",
+    transferProof: "",
+    employees: [
+      { id: "SPPD-EMP-009", name: "Dewi Kartika", nik: "710027", division: "Finance", position: "Staff Finance", level: "Staff", dailyAllowance: 350000, assignmentLetter: "Not Created", detailStatus: "Confirmed" }
+    ]
+  },
+  {
+    id: "SPPD-2026-007",
+    docNo: "007/SPPD/09/2026",
+    requesterName: "Rizky Pramana",
+    requesterDivision: "Engineering",
+    requesterNik: "710063",
+    requesterPosition: "Maintenance Engineer",
+    agendaName: "Plant Maintenance Inspection",
+    agendaDate: "2026-09-20",
+    agendaTime: "08:00",
+    agendaLocation: "Gresik",
+    agendaType: "Site Visit",
+    region: "Domestic",
+    area: "Area 1",
+    cluster: "Java",
+    sppdDate: "2026-09-19",
+    requestDate: "2026-09-19",
+    assignmentStartDate: "2026-09-20",
+    assignmentStartTime: "07:00",
+    assignmentEndDate: "2026-09-21",
+    assignmentEndTime: "17:00",
+    duration: 2,
+    remark: "Main allowance has been paid. Additional costs can now be entered.",
+    attachment: "maintenance-inspection.pdf",
+    assignmentLetterFile: "Assignment Letter 007-SPPD-09-2026.pdf",
+    status: "Approved",
+    workflowStage: "Add Cost",
+    paymentStatus: "Paid",
+    transferDate: "2026-09-22",
+    transferProof: "transfer-007.pdf",
+    employees: [
+      { id: "SPPD-EMP-010", name: "Rizky Pramana", nik: "710063", division: "Engineering", position: "Maintenance Engineer", level: "Staff", dailyAllowance: 350000, verifiedAllowance: 700000, verificationStatus: "Verified", paymentStatus: "Paid", paymentDate: "2026-09-22", transferProof: "transfer-rizky-007.pdf", assignmentLetter: "Created", detailStatus: "Confirmed" }
+    ]
   }
 ];
 
 db.sppdOtherAllowances = [
-  { id: "OA-001", sppdId: "SPPD-2026-005", requesterName: "Anindya Putri", type: "Transport", amount: 275000, status: "Submitted", transferDate: "", proof: "", paymentRemark: "Menunggu proses payment." },
-  { id: "OA-002", sppdId: "SPPD-2026-005", requesterName: "Rizky Pramana", type: "Transport", amount: 250000, status: "Paid", transferDate: "2026-08-19", proof: "transport-002.pdf", paymentRemark: "Sudah dibayarkan sesuai kwitansi." }
+  { id: "OA-001", sppdId: "SPPD-2026-005", requesterName: "Anindya Putri", type: "Transport", amount: 275000, status: "Submitted", transferDate: "", proof: "", paymentRemark: "Waiting for payment processing." },
+  { id: "OA-002", sppdId: "SPPD-2026-005", requesterName: "Rizky Pramana", type: "Transport", amount: 250000, status: "Paid", transferDate: "2026-08-19", proof: "transport-002.pdf", paymentRemark: "Paid according to the receipt." },
+  { id: "OA-003", sppdId: "SPPD-2026-007", employeeId: "SPPD-EMP-010", requesterName: "Rizky Pramana", type: "Hotel", amount: 650000, status: "Submitted", transferDate: "", proof: "hotel-receipt-007.pdf", remark: "One-night accommodation", paymentRemark: "Waiting for additional cost payment." }
 ];
 
 db.sppdMaster = [
-  { id: "MST-001", type: "Jenis Agenda", name: "Rapat", value: "-", status: "Active" },
-  { id: "MST-002", type: "Jenis Agenda", name: "Pelatihan", value: "-", status: "Active" },
-  { id: "MST-003", type: "Region", name: "Dalam Negeri", value: "-", status: "Active" },
-  { id: "MST-004", type: "Region", name: "Luar Negeri", value: "-", status: "Active" },
+  { id: "MST-001", type: "Jenis Agenda", name: "Meeting", value: "-", status: "Active" },
+  { id: "MST-002", type: "Jenis Agenda", name: "Training", value: "-", status: "Active" },
+  { id: "MST-003", type: "Region", name: "Domestic", value: "-", status: "Active" },
+  { id: "MST-004", type: "Region", name: "International", value: "-", status: "Active" },
   { id: "MST-005", type: "Area / Cluster", name: "Area 1", value: "Jawa Timur termasuk Madura", status: "Active" },
   { id: "MST-006", type: "Area / Cluster", name: "Area 2", value: "Pulau Jawa selain Jawa Timur", status: "Active" },
   { id: "MST-007", type: "Area / Cluster", name: "Area 3", value: "Diluar Pulau Jawa", status: "Active" },
@@ -1644,7 +1712,7 @@ function updateChrome() {
   sppdRoot?.classList.toggle("active", sppdActive);
   sppdRoot?.classList.toggle("muted", !sppdActive);
 
-  const crumb = [isSppdSection(appState.section) ? "Perjalanan Dinas" : "Reward & Punishment"];
+  const crumb = [isSppdSection(appState.section) ? "Official Travel" : "Reward & Punishment"];
   if (appState.section !== "dashboard") {
     crumb.push(groupForSection(appState.section));
     crumb.push(titleForSection(appState.section));
@@ -1689,7 +1757,7 @@ function titleForSection(section) {
     sppdPayment: "Allowance Payment",
     sppdOtherAllowance: "Add Cost",
     sppdMaster: "Master SPPD",
-    sppdMasterJenis: "Jenis Agenda",
+    sppdMasterJenis: "Agenda Type",
     sppdMasterRegion: "Region",
     sppdMasterArea: "Area / Cluster",
     sppdMasterEmployee: "Employee",
@@ -3638,7 +3706,7 @@ function tableFilterConfig(section) {
       { key: "requestDate", label: "Date" }
     ],
     sppdCompletedList: [
-      { key: "agendaType", label: "Jenis Agenda" },
+      { key: "agendaType", label: "Agenda Type" },
       { key: "region", label: "Region" }
     ],
     sppdVerification: [
@@ -3750,7 +3818,7 @@ function renderSppdSortHeader(key, label, section = "sppdRequestList") {
     <th>
       <button class="sppd-sort-header ${active ? "active" : ""}" type="button" data-action="sppd-table-sort" data-section="${escapeHtml(section)}" data-sort-key="${escapeHtml(key)}">
         <span>${escapeHtml(label)}</span>
-        <span class="sppd-sort-arrows" aria-label="${active ? `Urutan ${sort.direction === "asc" ? "menaik" : "menurun"}` : "Urutkan kolom"}">
+        <span class="sppd-sort-arrows" aria-label="${active ? `${sort.direction === "asc" ? "Ascending" : "Descending"} order` : "Sort column"}">
           <i class="sort-up ${active && sort.direction === "asc" ? "active" : ""}"></i>
           <i class="sort-down ${active && sort.direction === "desc" ? "active" : ""}"></i>
         </span>
@@ -5375,7 +5443,7 @@ function renderDrawer() {
     <aside class="drawer" role="dialog" aria-modal="true" aria-label="${escapeHtml(`${actionLabel} ${sectionLabel}`)}">
       <div class="drawer-header">
         <div>
-          <small>${isSppdSection(appState.section) ? "Perjalanan Dinas" : "Reward & Punishment"}</small>
+          <small>${isSppdSection(appState.section) ? "Official Travel" : "Reward & Punishment"}</small>
           <h2>${escapeHtml(actionLabel)} ${escapeHtml(sectionLabel)}</h2>
         </div>
         <button class="icon-button" type="button" aria-label="Close" title="Close" data-action="close-drawer">${icon("x")}</button>
@@ -5946,7 +6014,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (action === "sppd-letter-generate") {
-    updateSppdLetter(target.dataset.id, target.dataset.employeeId, "Created", "Surat tugas dibuat.");
+    updateSppdLetter(target.dataset.id, target.dataset.employeeId, "Created", "Assignment letter created.");
   }
 
   if (action === "sppd-letter-edit") {
@@ -5978,7 +6046,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (action === "sppd-letter-download") {
-    updateSppdLetter(target.dataset.id, target.dataset.employeeId, null, "Surat tugas didownload.");
+    updateSppdLetter(target.dataset.id, target.dataset.employeeId, null, "Assignment letter downloaded.");
   }
 
   if (action === "sppd-doc-preview") {
@@ -6373,6 +6441,10 @@ document.addEventListener("input", (event) => {
 
   if (target.dataset.action === "sppd-picker-search") {
     filterSppdPickerRows(target.value);
+  }
+
+  if (target.dataset.action === "sppd-cost-amount") {
+    updateSppdAddCostTotal();
   }
 });
 

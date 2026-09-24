@@ -55,7 +55,7 @@
 
 .sppd-metric-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -99,6 +99,10 @@
   border-color: rgba(16, 151, 167, 0.24);
 }
 
+.sppd-metric-card.metric-add-cost {
+  border-color: rgba(74, 119, 211, 0.25);
+}
+
 .sppd-metric-card.metric-completed {
   border-color: rgba(27, 156, 105, 0.25);
 }
@@ -121,6 +125,11 @@
 .sppd-metric-card.metric-payment .sppd-metric-icon {
   background: rgba(26, 174, 189, 0.15);
   color: #087989;
+}
+
+.sppd-metric-card.metric-add-cost .sppd-metric-icon {
+  background: rgba(74, 119, 211, 0.16);
+  color: #315fae;
 }
 
 .sppd-metric-card.metric-completed .sppd-metric-icon {
@@ -162,6 +171,11 @@
 .metric-payment .sppd-metric-card-head {
   border-bottom-color: rgba(16, 151, 167, 0.30);
   background: rgba(26, 174, 189, 0.18);
+}
+
+.metric-add-cost .sppd-metric-card-head {
+  border-bottom-color: rgba(74, 119, 211, 0.30);
+  background: rgba(74, 119, 211, 0.18);
 }
 
 .metric-completed .sppd-metric-card-head {
@@ -420,16 +434,34 @@
   table-layout: fixed;
 }
 
-.sppd-payment-participant-table col.employee-col { width: 14%; }
-.sppd-payment-participant-table col.division-col { width: 12%; }
-.sppd-payment-participant-table col.agenda-col { width: 14%; }
-.sppd-payment-participant-table col.period-col { width: 16%; }
+.sppd-payment-participant-table col.employee-col { width: 12%; }
+.sppd-payment-participant-table col.division-col { width: 11%; }
+.sppd-payment-participant-table col.agenda-col { width: 12%; }
+.sppd-payment-participant-table col.period-col { width: 13%; }
 .sppd-payment-participant-table col.level-col { width: 6%; }
-.sppd-payment-participant-table col.allowance-col { width: 9%; }
-.sppd-payment-participant-table col.status-col { width: 10%; }
+.sppd-payment-participant-table col.allowance-col { width: 8%; }
+.sppd-payment-participant-table col.status-col { width: 9%; }
 .sppd-payment-participant-table col.date-col { width: 8%; }
 .sppd-payment-participant-table col.proof-col { width: 7%; }
+.sppd-payment-participant-table col.remark-col { width: 10%; }
 .sppd-payment-participant-table col.action-col { width: 4%; }
+
+.sppd-payment-action-modal {
+  width: min(660px, calc(100vw - 32px));
+  max-width: 660px;
+}
+
+.sppd-payment-action-fields {
+  grid-template-columns: 1fr 1fr;
+}
+
+.sppd-payment-action-fields .form-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.sppd-payment-action-fields textarea {
+  min-height: 92px;
+}
 
 .sppd-payment-table-wrap {
   width: 100%;
@@ -483,14 +515,14 @@
   table-layout: fixed;
 }
 
-.sppd-employee-add-cost-table col.employee-col { width: 14%; }
-.sppd-employee-add-cost-table col.division-col { width: 14%; }
-.sppd-employee-add-cost-table col.agenda-col { width: 16%; }
+.sppd-employee-add-cost-table col.employee-col { width: 15%; }
+.sppd-employee-add-cost-table col.division-col { width: 15%; }
+.sppd-employee-add-cost-table col.agenda-col { width: 15%; }
 .sppd-employee-add-cost-table col.amount-col { width: 12%; }
-.sppd-employee-add-cost-table col.proof-col { width: 10%; }
 .sppd-employee-add-cost-table col.status-col { width: 11%; }
-.sppd-employee-add-cost-table col.remark-col { width: 14%; }
-.sppd-employee-add-cost-table col.action-col { width: 9%; }
+.sppd-employee-add-cost-table col.proof-col { width: 11%; }
+.sppd-employee-add-cost-table col.remark-col { width: 15%; }
+.sppd-employee-add-cost-table col.action-col { width: 6%; }
 
 .sppd-add-cost-table-wrap {
   width: 100%;
@@ -544,6 +576,43 @@
   white-space: nowrap;
 }
 
+.sppd-cost-total-value {
+  color: var(--text-primary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sppd-cost-proof-actions {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 34px;
+}
+
+.sppd-cost-proof-actions button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #b9dcff;
+  border-radius: 6px;
+  background: #e8f4ff;
+  color: #0788e8;
+  cursor: pointer;
+}
+
+.sppd-cost-proof-actions button:hover {
+  border-color: #0788e8;
+  background: #0788e8;
+  color: #fff;
+}
+
+.sppd-employee-add-cost-table th:last-child {
+  white-space: nowrap;
+}
+
 .sppd-add-cost-button {
   justify-content: center;
   width: 100%;
@@ -556,12 +625,49 @@
 
 .sppd-add-cost-modal-body {
   display: grid;
+  align-content: start;
   gap: 14px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#sppdOtherAllowanceForm {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(980px, calc(100vw - 32px));
+  max-width: 980px;
+  max-height: min(720px, calc(100vh - 32px));
+}
+
+.sppd-add-cost-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 12px 16px;
+  border: 1px solid #b9dcff;
+  border-radius: 6px;
+  background: #eef7ff;
+}
+
+.sppd-add-cost-total span {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sppd-add-cost-total strong {
+  color: #087bc1;
+  font-size: 20px;
 }
 
 .sppd-add-cost-entry-table-wrap {
   width: 100%;
+  max-height: 310px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .sppd-add-cost-entry-table {
@@ -576,25 +682,58 @@
 .sppd-add-cost-entry-table th:nth-child(4) { width: 28%; }
 .sppd-add-cost-entry-table th:nth-child(5) { width: 8%; }
 
+.sppd-add-cost-entry-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 50px;
+  background: #f4f7fb;
+  text-align: center;
+  vertical-align: middle;
+}
+
 .sppd-add-cost-entry-table th,
 .sppd-add-cost-entry-table td {
-  padding: 9px;
+  padding: 10px 9px;
+  vertical-align: middle;
 }
 
 .sppd-add-cost-entry-table input,
 .sppd-add-cost-entry-table select {
   width: 100%;
   min-width: 0;
-  min-height: 40px;
+  min-height: 46px;
+  box-sizing: border-box;
 }
 
 .sppd-add-cost-entry-table input[type="file"] {
-  padding: 6px;
+  padding: 8px;
   font-size: 12px;
 }
 
 .sppd-add-cost-row-button {
   justify-self: end;
+  min-width: 138px;
+}
+
+.sppd-add-cost-action-placeholder {
+  display: inline-block;
+  width: 36px;
+  height: 36px;
+}
+
+@media (max-width: 760px) {
+  #sppdOtherAllowanceForm {
+    max-height: calc(100vh - 16px);
+  }
+
+  .sppd-add-cost-entry-table-wrap {
+    overflow-x: auto;
+  }
+
+  .sppd-add-cost-entry-table {
+    min-width: 760px;
+  }
 }
 
 .sppd-review-overview-table th,
@@ -1421,6 +1560,362 @@
 .sppd-create-participant-table td:nth-child(5) { width: 20%; text-align: left; }
 .sppd-create-participant-table th:nth-child(6),
 .sppd-create-participant-table td:nth-child(6) { width: 10%; min-width: 112px; text-align: center; }
+
+/* Compact spacing must remain after all legacy overrides. */
+.sppd-page .sppd-data-table th,
+.sppd-page .sppd-data-table td,
+.sppd-document-page .sppd-data-table th,
+.sppd-document-page .sppd-data-table td {
+  padding: 11px 9px;
+}
+
+.sppd-employee-assignment-modal > .modal-body,
+.sppd-payment-action-modal > .modal-body,
+.sppd-add-cost-modal > .modal-body {
+  padding: 18px;
+}
+
+.sppd-employee-assignment-modal .form-grid,
+.sppd-payment-action-modal .form-grid,
+.sppd-add-cost-modal .form-grid {
+  gap: 12px 16px;
+}
+
+.sppd-employee-assignment-modal .form-field,
+.sppd-payment-action-modal .form-field,
+.sppd-add-cost-modal .form-field {
+  gap: 8px;
+}
+
+/* Final compact pass: placed last so legacy table/modal rules cannot widen it. */
+.sppd-page .sppd-data-table th,
+.sppd-page .sppd-data-table td,
+.sppd-document-page .sppd-data-table th,
+.sppd-document-page .sppd-data-table td {
+  padding: 11px 9px;
+}
+
+.sppd-employee-assignment-modal > .modal-body,
+.sppd-payment-action-modal > .modal-body,
+.sppd-add-cost-modal > .modal-body {
+  padding: 18px;
+}
+
+.sppd-employee-assignment-modal .form-grid,
+.sppd-payment-action-modal .form-grid,
+.sppd-add-cost-modal .form-grid {
+  gap: 12px 16px;
+}
+
+.sppd-employee-assignment-modal .form-field,
+.sppd-payment-action-modal .form-field,
+.sppd-add-cost-modal .form-field {
+  gap: 8px;
+}
+
+/* Compact spacing rhythm across All Request and its document details. */
+.sppd-page,
+.sppd-document-page {
+  --sppd-space-xs: 6px;
+  --sppd-space-sm: 10px;
+  --sppd-space-md: 14px;
+  --sppd-space-lg: 18px;
+}
+
+.sppd-page .panel + .panel,
+.sppd-document-page .panel + .panel,
+.sppd-document-page .sppd-stage-view-panel {
+  margin-top: var(--sppd-space-md);
+}
+
+.sppd-page .panel-header,
+.sppd-document-page .panel-header {
+  padding: 16px 18px;
+}
+
+.sppd-page .panel-body,
+.sppd-document-page .panel-body,
+.sppd-document-page .sppd-tab-body {
+  padding: var(--sppd-space-lg);
+}
+
+.sppd-page .sppd-section-head,
+.sppd-document-page .sppd-section-head {
+  gap: var(--sppd-space-sm);
+  margin-bottom: var(--sppd-space-md);
+}
+
+.sppd-document-page .sppd-stage-view,
+.sppd-document-page .sppd-review-text {
+  gap: var(--sppd-space-md);
+}
+
+.sppd-document-page .sppd-review-section {
+  gap: var(--sppd-space-sm);
+  padding-bottom: var(--sppd-space-md);
+}
+
+.sppd-document-page .sppd-review-pairs {
+  gap: 8px 24px;
+}
+
+.sppd-document-page .sppd-review-pair {
+  gap: var(--sppd-space-sm);
+  min-height: 26px;
+}
+
+.sppd-document-page .sppd-detail-information-grid {
+  gap: 24px;
+  margin-top: var(--sppd-space-md);
+}
+
+.sppd-document-page .sppd-detail-information-column {
+  gap: 8px;
+}
+
+.sppd-document-page .sppd-detail-information-row {
+  gap: var(--sppd-space-sm);
+}
+
+.sppd-document-page .sppd-detail-tabs {
+  gap: var(--sppd-space-xs);
+}
+
+.sppd-document-page .sppd-detail-tab-panel {
+  margin: 12px 0 14px;
+}
+
+.sppd-page .sppd-data-table th,
+.sppd-page .sppd-data-table td,
+.sppd-document-page .sppd-data-table th,
+.sppd-document-page .sppd-data-table td {
+  padding: 11px 9px;
+}
+
+.sppd-document-page .sppd-document-progress {
+  padding: 18px 22px 16px;
+}
+
+.sppd-document-page .sppd-modal-section {
+  gap: var(--sppd-space-sm);
+  padding-bottom: var(--sppd-space-md);
+}
+
+.sppd-document-page .sppd-modal-section + .sppd-modal-section {
+  margin-top: var(--sppd-space-md);
+}
+
+.sppd-document-page .form-grid,
+.sppd-document-page .sppd-assignment-grid,
+.sppd-document-page .sppd-agenda-row-grid,
+.sppd-document-page .sppd-payment-action-fields {
+  gap: 12px 16px;
+}
+
+.sppd-document-page .form-field {
+  gap: var(--sppd-space-sm);
+}
+
+.sppd-document-page .sppd-agenda-list {
+  gap: var(--sppd-space-sm);
+}
+
+.sppd-document-page .sppd-agenda-row {
+  padding: var(--sppd-space-sm);
+}
+
+.sppd-document-page .sppd-copy-strip {
+  gap: var(--sppd-space-sm);
+  margin-bottom: var(--sppd-space-md);
+  padding: var(--sppd-space-sm);
+}
+
+@media (max-width: 760px) {
+  .sppd-page .panel-header,
+  .sppd-document-page .panel-header,
+  .sppd-page .panel-body,
+  .sppd-document-page .panel-body,
+  .sppd-document-page .sppd-tab-body {
+    padding: 14px;
+  }
+}
+
+/* Final All Request layout guardrails. */
+.sppd-page,
+.sppd-document-page,
+.sppd-page .panel,
+.sppd-document-page .panel,
+.sppd-page .panel-body,
+.sppd-document-page .panel-body,
+.sppd-stage-view,
+.sppd-review-section,
+.sppd-section-head {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.sppd-page .panel,
+.sppd-document-page .panel {
+  overflow: hidden;
+}
+
+.sppd-page .table-wrap,
+.sppd-document-page .table-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.sppd-document-table.sppd-all-request-table,
+.sppd-review-overview-table,
+.sppd-verification-participant-table,
+.sppd-payment-participant-table,
+.sppd-approval-track-table,
+.sppd-employee-add-cost-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.sppd-page .sppd-data-table th,
+.sppd-page .sppd-data-table td,
+.sppd-document-page .sppd-data-table th,
+.sppd-document-page .sppd-data-table td {
+  min-width: 0;
+  padding: 13px 10px;
+  line-height: 1.35;
+  vertical-align: middle;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.sppd-page .sppd-data-table thead th,
+.sppd-document-page .sppd-data-table thead th {
+  text-align: center;
+}
+
+.sppd-document-table.sppd-all-request-table th:nth-child(1),
+.sppd-document-table.sppd-all-request-table td:nth-child(1) { width: 5%; }
+.sppd-document-table.sppd-all-request-table th:nth-child(2),
+.sppd-document-table.sppd-all-request-table td:nth-child(2) { width: 19%; }
+.sppd-document-table.sppd-all-request-table th:nth-child(3),
+.sppd-document-table.sppd-all-request-table td:nth-child(3) { width: 19%; }
+.sppd-document-table.sppd-all-request-table th:nth-child(4),
+.sppd-document-table.sppd-all-request-table td:nth-child(4) { width: 18%; }
+.sppd-document-table.sppd-all-request-table th:nth-child(5),
+.sppd-document-table.sppd-all-request-table td:nth-child(5) { width: 9%; }
+.sppd-document-table.sppd-all-request-table th:nth-child(6),
+.sppd-document-table.sppd-all-request-table td:nth-child(6) { width: 12%; }
+.sppd-document-table.sppd-all-request-table th:nth-child(7),
+.sppd-document-table.sppd-all-request-table td:nth-child(7) { width: 11%; }
+.sppd-document-table.sppd-all-request-table th:nth-child(8),
+.sppd-document-table.sppd-all-request-table td:nth-child(8) { width: 7%; }
+
+.sppd-document-table.sppd-all-request-table th:nth-child(2),
+.sppd-document-table.sppd-all-request-table td:nth-child(2),
+.sppd-document-table.sppd-all-request-table th:nth-child(3),
+.sppd-document-table.sppd-all-request-table td:nth-child(3),
+.sppd-document-table.sppd-all-request-table th:nth-child(4),
+.sppd-document-table.sppd-all-request-table td:nth-child(4) {
+  text-align: left;
+}
+
+.sppd-document-table.sppd-all-request-table td:nth-child(2) small,
+.sppd-document-table.sppd-all-request-table td:nth-child(3) small,
+.sppd-document-table.sppd-all-request-table td:nth-child(4) small {
+  text-align: left;
+}
+
+.sppd-page .sppd-data-table .status,
+.sppd-page .sppd-data-table .sppd-status,
+.sppd-document-page .sppd-data-table .status,
+.sppd-document-page .sppd-data-table .sppd-status {
+  width: auto;
+  max-width: 100%;
+  min-width: 88px;
+  padding-right: 10px;
+  padding-left: 10px;
+  white-space: nowrap;
+}
+
+.sppd-page .table-actions,
+.sppd-document-page .table-actions {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  max-width: 100%;
+}
+
+.sppd-page .action-icon,
+.sppd-document-page .action-icon {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.sppd-document-page .sppd-file-link {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.sppd-document-page .sppd-file-link button:first-child {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.sppd-document-page .sppd-file-link button:first-child span {
+  min-width: 0;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sppd-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sppd-section-head > * {
+  min-width: 0;
+}
+
+.sppd-document-page .modal input,
+.sppd-document-page .modal select,
+.sppd-document-page .modal textarea,
+.modal .sppd-add-cost-entry-table input,
+.modal .sppd-add-cost-entry-table select {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1100px) {
+  .sppd-page .sppd-data-table th,
+  .sppd-page .sppd-data-table td,
+  .sppd-document-page .sppd-data-table th,
+  .sppd-document-page .sppd-data-table td {
+    padding-right: 7px;
+    padding-left: 7px;
+    font-size: 12px;
+  }
+
+  .sppd-document-table.sppd-all-request-table,
+  .sppd-verification-participant-table,
+  .sppd-payment-participant-table,
+  .sppd-employee-add-cost-table {
+    min-width: 900px;
+  }
+}
 
 /* Read-only SPPD values must be visually distinct from editable fields. */
 .sppd-page input[readonly],
@@ -3044,17 +3539,52 @@
 .sppd-document-table.sppd-all-request-table th:nth-child(1),
 .sppd-document-table.sppd-all-request-table td:nth-child(1) { width: 5%; }
 .sppd-document-table.sppd-all-request-table th:nth-child(2),
-.sppd-document-table.sppd-all-request-table td:nth-child(2) { width: 22%; }
+.sppd-document-table.sppd-all-request-table td:nth-child(2) { width: 20%; }
 .sppd-document-table.sppd-all-request-table th:nth-child(3),
-.sppd-document-table.sppd-all-request-table td:nth-child(3) { width: 22%; }
+.sppd-document-table.sppd-all-request-table td:nth-child(3) { width: 19%; }
 .sppd-document-table.sppd-all-request-table th:nth-child(4),
-.sppd-document-table.sppd-all-request-table td:nth-child(4) { width: 21%; }
+.sppd-document-table.sppd-all-request-table td:nth-child(4) { width: 18%; }
 .sppd-document-table.sppd-all-request-table th:nth-child(5),
-.sppd-document-table.sppd-all-request-table td:nth-child(5) { width: 10%; }
+.sppd-document-table.sppd-all-request-table td:nth-child(5) { width: 9%; }
 .sppd-document-table.sppd-all-request-table th:nth-child(6),
-.sppd-document-table.sppd-all-request-table td:nth-child(6) { width: 13%; }
+.sppd-document-table.sppd-all-request-table td:nth-child(6) { width: 13%; text-align: center; }
 .sppd-document-table.sppd-all-request-table th:nth-child(7),
-.sppd-document-table.sppd-all-request-table td:nth-child(7) { width: 7%; min-width: 0; }
+.sppd-document-table.sppd-all-request-table td:nth-child(7) { width: 10%; text-align: center; }
+.sppd-document-table.sppd-all-request-table th:nth-child(8),
+.sppd-document-table.sppd-all-request-table td:nth-child(8) { width: 6%; min-width: 0; text-align: center; }
+
+.sppd-request-letter-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: auto;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+button.sppd-request-letter-icon {
+  cursor: pointer;
+}
+
+.sppd-request-letter-icon.is-available {
+  border-color: #b9dcff;
+  background: #e8f4ff;
+  color: #0788e8;
+}
+
+.sppd-request-letter-icon.is-available:hover {
+  border-color: #0788e8;
+  background: #0788e8;
+  color: #fff;
+}
+
+.sppd-request-letter-icon.is-unavailable {
+  border-color: #dde3eb;
+  background: #f1f4f8;
+  color: #a5afbd;
+}
 
 .sppd-document-table {
   min-width: 1180px;
@@ -3773,3 +4303,29 @@
 .sppd-create-participant-table td:nth-child(5) { width: 20%; text-align: left; }
 .sppd-create-participant-table th:nth-child(6),
 .sppd-create-participant-table td:nth-child(6) { width: 10%; min-width: 112px; text-align: center; }
+
+/* Final All Request spacing override. */
+.sppd-page .sppd-data-table th,
+.sppd-page .sppd-data-table td,
+.sppd-document-page .sppd-data-table th,
+.sppd-document-page .sppd-data-table td {
+  padding: 11px 9px;
+}
+
+.sppd-employee-assignment-modal > .modal-body,
+.sppd-payment-action-modal > .modal-body,
+.sppd-add-cost-modal > .modal-body {
+  padding: 18px;
+}
+
+.sppd-employee-assignment-modal .form-grid,
+.sppd-payment-action-modal .form-grid,
+.sppd-add-cost-modal .form-grid {
+  gap: 12px 16px;
+}
+
+.sppd-employee-assignment-modal .form-field,
+.sppd-payment-action-modal .form-field,
+.sppd-add-cost-modal .form-field {
+  gap: 8px;
+}
