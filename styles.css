@@ -592,6 +592,494 @@ textarea:focus-visible {
   border-left-color: #22a7bd;
 }
 
+/* KPI dashboard */
+.kpi-dashboard-page {
+  gap: 16px;
+}
+
+.kpi-dashboard-page .dashboard-card {
+  border-color: #dfe5ee;
+  box-shadow: 0 2px 8px rgba(23, 36, 58, .045);
+}
+
+.kpi-dashboard-page .dashboard-card-header {
+  min-height: 66px;
+  padding: 16px 18px 13px;
+}
+
+.kpi-dashboard-page .dashboard-card-header h2 {
+  font-size: 16px;
+}
+
+.kpi-dashboard-page .dashboard-card-header small {
+  margin-top: 5px;
+}
+
+.kpi-chart-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.kpi-chart-grid-primary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.kpi-chart-grid-secondary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.kpi-last-update {
+  color: #718097;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.kpi-filter-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 14px;
+  padding: 13px 18px 15px;
+  border-bottom: 1px solid var(--line);
+  background: #fbfcfe;
+}
+
+.kpi-filter-bar label {
+  display: grid;
+  gap: 6px;
+}
+
+.kpi-filter-bar label > span {
+  color: #65748c;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.kpi-filter-bar select {
+  width: 100%;
+  min-height: 40px;
+}
+
+.kpi-summary-grid {
+  grid-template-columns: repeat(6, minmax(145px, 1fr));
+  gap: 10px;
+  padding: 14px 18px 16px;
+}
+
+.kpi-summary-grid .dashboard-summary-card {
+  min-height: 96px;
+  padding: 12px 14px;
+}
+
+.kpi-summary-grid .dashboard-summary-card strong {
+  font-size: 23px;
+}
+
+.kpi-summary-grid .dashboard-summary-card span {
+  margin-top: 6px;
+  line-height: 1.3;
+}
+
+.kpi-process-chart {
+  display: grid;
+  align-content: center;
+  min-height: 214px;
+  padding: 28px 24px;
+}
+
+.kpi-process-stack {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  height: 18px;
+  border-radius: 4px;
+  background: #edf1f6;
+}
+
+.kpi-process-stack span {
+  min-width: 4px;
+  border-right: 2px solid #fff;
+}
+
+.kpi-process-stack span:last-child { border-right: 0; }
+.kpi-process-stack .draft,
+.kpi-chart-legend i.draft { background: #9aa6b6; }
+.kpi-process-stack .submitted,
+.kpi-chart-legend i.submitted { background: #1687e8; }
+.kpi-process-stack .waiting,
+.kpi-chart-legend i.waiting { background: #f2b544; }
+.kpi-process-stack .revision,
+.kpi-chart-legend i.revision { background: #e86879; }
+.kpi-process-stack .approved,
+.kpi-chart-legend i.approved { background: #28b77d; }
+
+.kpi-chart-legend {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin-top: 22px;
+  color: #68768c;
+  font-size: 12px;
+}
+
+.kpi-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.kpi-chart-legend i,
+.kpi-donut-legend i {
+  flex: 0 0 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.kpi-chart-legend b,
+.kpi-donut-legend b {
+  color: #17243a;
+}
+
+.kpi-donut-layout {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+  min-height: 214px;
+  padding: 22px 28px;
+}
+
+.kpi-donut {
+  display: grid;
+  place-items: center;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  background: conic-gradient(#28b77d 0 32%, #1687e8 32% 81%, #f2b544 81% 95%, #cbd3df 95% 100%);
+}
+
+.kpi-donut > div {
+  display: grid;
+  place-items: center;
+  width: 94px;
+  height: 94px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.kpi-donut strong {
+  color: #071631;
+  font-size: 24px;
+}
+
+.kpi-donut small {
+  color: #718097;
+}
+
+.kpi-donut-legend {
+  display: grid;
+  gap: 12px;
+  color: #68768c;
+  font-size: 12px;
+}
+
+.kpi-donut-legend span {
+  display: grid;
+  grid-template-columns: 10px 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+}
+
+.kpi-donut-legend i.exceeds { background: #28b77d; }
+.kpi-donut-legend i.achieved { background: #1687e8; }
+.kpi-donut-legend i.below { background: #f2b544; }
+.kpi-donut-legend i.empty { background: #cbd3df; }
+
+.kpi-horizontal-chart {
+  display: grid;
+  gap: 14px;
+  min-height: 230px;
+  padding: 24px 20px;
+}
+
+.kpi-horizontal-chart > div {
+  display: grid;
+  grid-template-columns: 82px minmax(80px, 1fr) 26px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.kpi-horizontal-chart > div > span { color: #526079; }
+.kpi-horizontal-chart > div > div {
+  overflow: hidden;
+  height: 10px;
+  border-radius: 3px;
+  background: #edf1f6;
+}
+.kpi-horizontal-chart i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1687e8;
+}
+.kpi-horizontal-chart strong { color: #17243a; text-align: right; }
+
+.kpi-column-chart,
+.kpi-trend-chart {
+  display: grid;
+  align-items: end;
+  gap: 10px;
+  height: 230px;
+  padding: 24px 18px 16px;
+}
+
+.kpi-column-chart { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.kpi-trend-chart { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+
+.kpi-column-chart > div,
+.kpi-trend-chart > div {
+  display: grid;
+  grid-template-rows: 22px 130px 24px;
+  justify-items: center;
+  align-items: end;
+  gap: 5px;
+  min-width: 0;
+}
+
+.kpi-column-chart strong,
+.kpi-trend-chart strong {
+  color: #344258;
+  font-size: 11px;
+}
+
+.kpi-column-chart span,
+.kpi-trend-chart span {
+  display: flex;
+  align-items: flex-end;
+  width: min(40px, 80%);
+  height: 130px;
+  border-bottom: 1px solid #dbe2ec;
+  background: #f5f7fa;
+}
+
+.kpi-column-chart i,
+.kpi-trend-chart i {
+  display: block;
+  width: 100%;
+  min-height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: #22a7bd;
+}
+
+.kpi-trend-chart span { width: min(24px, 86%); }
+.kpi-trend-chart i { background: #6674d9; }
+.kpi-column-chart small,
+.kpi-trend-chart small {
+  overflow: hidden;
+  width: 100%;
+  color: #718097;
+  font-size: 10px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kpi-progress-body {
+  padding: 28px 20px 24px;
+}
+
+.kpi-progress-track,
+.kpi-table-progress {
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9eef5;
+}
+
+.kpi-progress-track {
+  height: 12px;
+}
+
+.kpi-progress-track span,
+.kpi-table-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1687e8;
+}
+
+.kpi-progress-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  color: #65748c;
+  font-size: 12px;
+}
+
+.kpi-status-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-height: 128px;
+  padding: 20px;
+}
+
+.kpi-status-summary > div {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  border-right: 1px solid var(--line);
+}
+
+.kpi-status-summary > div:last-child {
+  border-right: 0;
+}
+
+.kpi-status-summary strong {
+  color: #071631;
+  font-size: 24px;
+}
+
+.kpi-status-summary small {
+  color: #718097;
+}
+
+.kpi-status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.kpi-status-dot.on-track,
+.kpi-status.on-track { background: #d9f6e9; color: #087a51; }
+.kpi-status-dot.monitor,
+.kpi-status.monitor { background: #fff0ce; color: #a45e00; }
+.kpi-status-dot.at-risk,
+.kpi-status.at-risk { background: #ffe1e5; color: #b52c43; }
+
+.kpi-performance-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.kpi-performance-table th:nth-child(1) { width: 24%; }
+.kpi-performance-table th:nth-child(2),
+.kpi-performance-table th:nth-child(3),
+.kpi-performance-table th:nth-child(4) { width: 11%; }
+.kpi-performance-table th:nth-child(5) { width: 25%; }
+.kpi-performance-table th:nth-child(6) { width: 18%; }
+
+.kpi-performance-table th,
+.kpi-performance-table td {
+  padding: 13px 16px;
+  vertical-align: middle;
+}
+
+.kpi-performance-table th {
+  text-align: center;
+}
+
+.kpi-performance-table th:first-child,
+.kpi-performance-table td:first-child {
+  text-align: left;
+}
+
+.kpi-cell-progress {
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) 38px;
+  align-items: center;
+  gap: 8px;
+}
+
+.kpi-table-progress {
+  height: 7px;
+}
+
+.kpi-cell-progress small {
+  margin: 0;
+  text-align: right;
+}
+
+.kpi-status {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 88px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.kpi-queue-count,
+.kpi-waiting-time {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.kpi-queue-count {
+  padding: 7px 11px;
+  background: #fff0ce;
+  color: #9b5b00;
+}
+
+.kpi-waiting-time {
+  min-width: 58px;
+  padding: 5px 9px;
+  background: #f3f5f8;
+  color: #59677c;
+}
+
+.kpi-approval-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.kpi-approval-table th:nth-child(1) { width: 25%; }
+.kpi-approval-table th:nth-child(2) { width: 17%; }
+.kpi-approval-table th:nth-child(3) { width: 14%; }
+.kpi-approval-table th:nth-child(4) { width: 23%; }
+.kpi-approval-table th:nth-child(5) { width: 13%; }
+.kpi-approval-table th:nth-child(6) { width: 8%; }
+
+.kpi-approval-table th,
+.kpi-approval-table td {
+  padding: 12px 14px;
+  vertical-align: middle;
+}
+
+.kpi-approval-table th { text-align: center; }
+.kpi-approval-table th:first-child,
+.kpi-approval-table td:first-child,
+.kpi-approval-table th:nth-child(2),
+.kpi-approval-table td:nth-child(2),
+.kpi-approval-table th:nth-child(4),
+.kpi-approval-table td:nth-child(4) { text-align: left; }
+
+@media (max-width: 1280px) {
+  .kpi-summary-grid { grid-template-columns: repeat(3, minmax(145px, 1fr)); }
+}
+
+@media (max-width: 980px) {
+  .kpi-chart-grid-primary,
+  .kpi-chart-grid-secondary { grid-template-columns: 1fr; }
+  .kpi-filter-bar { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .kpi-filter-bar,
+  .kpi-summary-grid { grid-template-columns: 1fr; }
+  .kpi-donut-layout { grid-template-columns: 1fr; justify-items: center; }
+  .kpi-donut-legend { width: 100%; }
+  .kpi-chart-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 .dashboard-inline-stat {
   min-width: 120px;
   padding: 10px 12px;

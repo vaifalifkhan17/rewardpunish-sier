@@ -3586,6 +3586,53 @@ button.sppd-request-letter-icon {
   color: #a5afbd;
 }
 
+.sppd-request-letter-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 112px;
+  min-height: 32px;
+  margin: auto;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+button.sppd-request-letter-status {
+  cursor: pointer;
+}
+
+.sppd-request-letter-status svg.icon {
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+}
+
+.sppd-request-letter-status.is-available {
+  border-color: #9fd0ff;
+  background: #e8f4ff;
+  color: #087ac1;
+}
+
+.sppd-request-letter-status.is-available:hover,
+.sppd-request-letter-status.is-available:focus-visible {
+  border-color: #0788e8;
+  background: #0788e8;
+  color: #fff;
+}
+
+.sppd-request-letter-status.is-unavailable {
+  border-color: #d9e0e9;
+  border-style: dashed;
+  background: #f4f6f9;
+  color: #7d899b;
+}
+
 .sppd-document-table {
   min-width: 1180px;
 }

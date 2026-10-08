@@ -1052,8 +1052,8 @@ function renderSppdAllRequestTable(rows, actionLabel = "View Detail", rowOffset 
             const letterCreated = Boolean(item.employees?.length) && item.employees.every((employee) => employee.assignmentLetter === "Created");
             const letterFile = item.assignmentLetterFile || (letterCreated ? `Assignment Letter ${item.docNo}.pdf` : "");
             const letterContent = letterFile
-              ? `<button class="sppd-request-letter-icon is-available" type="button" data-action="sppd-doc-preview" data-file="${escapeHtml(letterFile)}" title="View Assignment Letter" aria-label="View Assignment Letter">${icon("file-text")}</button>`
-              : `<span class="sppd-request-letter-icon is-unavailable" title="Assignment letter unavailable" aria-label="Assignment letter unavailable">${icon("file-text")}</span>`;
+              ? `<button class="sppd-request-letter-status is-available" type="button" data-action="sppd-doc-preview" data-file="${escapeHtml(letterFile)}" title="View Assignment Letter" aria-label="Assignment letter uploaded. View document">${icon("file-text")}<span>Uploaded</span></button>`
+              : `<span class="sppd-request-letter-status is-unavailable" title="Assignment letter not uploaded" aria-label="Assignment letter not uploaded">${icon("file-text")}<span>Not Uploaded</span></span>`;
             return `
             <tr>
               <td class="center no-col">${rowOffset + index + 1}</td>

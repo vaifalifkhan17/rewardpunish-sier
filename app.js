@@ -1625,7 +1625,9 @@ function createPointDraft(view, id) {
 function render() {
   updateChrome();
 
-  if (appState.section === "dashboard") {
+  if (appState.section === "kpiDashboard") {
+    app.innerHTML = renderKpiDashboard();
+  } else if (appState.section === "dashboard") {
     app.innerHTML = renderDashboard();
   } else if (appState.section === "category") {
     app.innerHTML = renderCategory();
@@ -1712,8 +1714,10 @@ function updateChrome() {
   sppdRoot?.classList.toggle("active", sppdActive);
   sppdRoot?.classList.toggle("muted", !sppdActive);
 
-  const crumb = [isSppdSection(appState.section) ? "Official Travel" : "Reward & Punishment"];
-  if (appState.section !== "dashboard") {
+  const crumb = appState.section === "kpiDashboard"
+    ? ["Performance Management", "KPI"]
+    : [isSppdSection(appState.section) ? "Official Travel" : "Reward & Punishment"];
+  if (appState.section !== "dashboard" && appState.section !== "kpiDashboard") {
     crumb.push(groupForSection(appState.section));
     crumb.push(titleForSection(appState.section));
   }
@@ -1739,6 +1743,7 @@ function syncSidebarDropdowns() {
 
 function titleForSection(section) {
   return {
+    kpiDashboard: "Dashboard KPI",
     category: "Category",
     criteria: "Criteria",
     point: "Point",
@@ -1766,6 +1771,7 @@ function titleForSection(section) {
 }
 
 function groupForSection(section) {
+  if (section === "kpiDashboard") return "KPI";
   if (isSppdSection(section)) return "Travel Request (SPPD)";
   if (["category", "criteria", "point", "period"].includes(section)) return "Master Data";
   if (["verification", "assessment"].includes(section)) return "Reward";
@@ -3807,6 +3813,147 @@ function renderTableFilters(section, rows) {
           </label>
         `;
       }).join("")}
+    </div>
+  `;
+}
+
+function renderKpiDashboard() {
+  const divisions = [
+    { name: "Human Capital", total: 38, submitted: 36, approved: 33, average: 94, status: "On Track" },
+    { name: "Finance", total: 31, submitted: 29, approved: 27, average: 91, status: "On Track" },
+    { name: "Commercial", total: 46, submitted: 40, approved: 35, average: 84, status: "Monitor" },
+    { name: "Operation", total: 57, submitted: 46, approved: 39, average: 78, status: "At Risk" },
+    { name: "Engineering", total: 42, submitted: 37, approved: 34, average: 87, status: "On Track" }
+  ];
+  const process = [
+    { label: "Draft", value: 28, tone: "draft" },
+    { label: "Submitted", value: 42, tone: "submitted" },
+    { label: "Waiting Approval", value: 31, tone: "waiting" },
+    { label: "Revision", value: 9, tone: "revision" },
+    { label: "Approved", value: 104, tone: "approved" }
+  ];
+  const kpiTypes = [
+    { label: "Corporate", value: 46 }, { label: "Collegial", value: 34 },
+    { label: "Directorate", value: 41 }, { label: "Mandatory", value: 55 },
+    { label: "Individual", value: 38 }
+  ];
+  const perspectives = [
+    { label: "Financial", short: "FIN", value: 92 },
+    { label: "Customer", short: "CUS", value: 86 },
+    { label: "Internal Process", short: "INT", value: 81 },
+    { label: "Learning & Growth", short: "L&G", value: 88 }
+  ];
+  const monthlyTrend = [
+    { month: "Jan", value: 72 }, { month: "Feb", value: 76 }, { month: "Mar", value: 74 },
+    { month: "Apr", value: 80 }, { month: "May", value: 83 }, { month: "Jun", value: 81 },
+    { month: "Jul", value: 86 }, { month: "Aug", value: 89 }, { month: "Sep", value: 87 }
+  ];
+  const approvalQueue = [
+    { kpi: "Employee Capability Index", owner: "Human Capital", type: "Corporate", approver: "Director HC", waiting: "1 day" },
+    { kpi: "Revenue Growth", owner: "Commercial", type: "Directorate", approver: "Commercial Director", waiting: "3 days" },
+    { kpi: "Plant Availability", owner: "Operation", type: "Mandatory", approver: "Operation Director", waiting: "5 days" }
+  ];
+  const totalKpi = divisions.reduce((sum, row) => sum + row.total, 0);
+  const submitted = divisions.reduce((sum, row) => sum + row.submitted, 0);
+  const approved = divisions.reduce((sum, row) => sum + row.approved, 0);
+  const average = Math.round(divisions.reduce((sum, row) => sum + row.average, 0) / divisions.length);
+  const maxType = Math.max(...kpiTypes.map((row) => row.value));
+
+  return `
+    <div class="dashboard-page kpi-dashboard-page">
+      <section class="dashboard-card">
+        <div class="dashboard-card-header">
+          <div>
+            <h2>Dashboard KPI</h2>
+            <small>Monitor KPI setup, achievement, approval, and reporting readiness.</small>
+          </div>
+          <span class="kpi-last-update">Last updated: 06 October 2026, 09:30</span>
+        </div>
+        <div class="kpi-filter-bar">
+          <label><span>Period</span><select><option>2026</option><option>2025</option></select></label>
+          <label><span>Unit</span><select><option>All Units</option>${divisions.map((row) => `<option>${escapeHtml(row.name)}</option>`).join("")}</select></label>
+          <label><span>KPI Type</span><select><option>All KPI Types</option>${kpiTypes.map((row) => `<option>${escapeHtml(row.label)}</option>`).join("")}</select></label>
+          <label><span>Approval Status</span><select><option>All Statuses</option><option>Draft</option><option>Submitted</option><option>Waiting Approval</option><option>Revision</option><option>Approved</option></select></label>
+        </div>
+        <div class="dashboard-summary-grid kpi-summary-grid">
+          ${dashboardSummaryCard("Total KPI", totalKpi, "Across 5 KPI types", "active")}
+          ${dashboardSummaryCard("Submitted", submitted, `${Math.round((submitted / totalKpi) * 100)}% of total KPI`, "submitted")}
+          ${dashboardSummaryCard("Waiting Approval", process[2].value, "Requires approver action", "pending")}
+          ${dashboardSummaryCard("Approved", approved, `${Math.round((approved / totalKpi) * 100)}% approval rate`, "verified")}
+          ${dashboardSummaryCard("Average Achievement", `${average}%`, "Company-wide realization", "approved")}
+          ${dashboardSummaryCard("Below Target", 23, "KPI requiring attention", "warning")}
+        </div>
+      </section>
+
+      <div class="kpi-chart-grid kpi-chart-grid-primary">
+        <section class="dashboard-card">
+          <div class="dashboard-card-header">
+            <div><h2>KPI Process Progress</h2><small>Current KPI volume at each workflow stage.</small></div>
+            <div class="dashboard-inline-stat"><small>Processed</small><strong>${Math.round(((totalKpi - process[0].value) / totalKpi) * 100)}%</strong></div>
+          </div>
+          <div class="kpi-process-chart">
+            <div class="kpi-process-stack">${process.map((row) => `<span class="${row.tone}" style="width:${(row.value / totalKpi) * 100}%" title="${escapeHtml(row.label)}: ${row.value}"></span>`).join("")}</div>
+            <div class="kpi-chart-legend">${process.map((row) => `<span><i class="${row.tone}"></i><b>${row.value}</b> ${escapeHtml(row.label)}</span>`).join("")}</div>
+          </div>
+        </section>
+
+        <section class="dashboard-card">
+          <div class="dashboard-card-header"><div><h2>Achievement Distribution</h2><small>Target realization status for approved KPI.</small></div></div>
+          <div class="kpi-donut-layout">
+            <div class="kpi-donut" role="img" aria-label="Achievement distribution: 32 exceeds target, 49 achieved, 14 below target, 5 without realization"><div><strong>${average}%</strong><small>Average</small></div></div>
+            <div class="kpi-donut-legend">
+              <span><i class="exceeds"></i><b>32%</b> Exceeds Target</span>
+              <span><i class="achieved"></i><b>49%</b> Achieved</span>
+              <span><i class="below"></i><b>14%</b> Below Target</span>
+              <span><i class="empty"></i><b>5%</b> No Realization</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="kpi-chart-grid kpi-chart-grid-secondary">
+        <section class="dashboard-card">
+          <div class="dashboard-card-header"><div><h2>KPI by Type</h2><small>Distribution across configured KPI types.</small></div></div>
+          <div class="kpi-horizontal-chart">
+            ${kpiTypes.map((row) => `<div><span>${escapeHtml(row.label)}</span><div><i style="width:${(row.value / maxType) * 100}%"></i></div><strong>${row.value}</strong></div>`).join("")}
+          </div>
+        </section>
+        <section class="dashboard-card">
+          <div class="dashboard-card-header"><div><h2>Perspective Performance</h2><small>Average achievement by KPI perspective.</small></div></div>
+          <div class="kpi-column-chart">
+            ${perspectives.map((row) => `<div><strong>${row.value}%</strong><span><i style="height:${row.value}%"></i></span><small title="${escapeHtml(row.label)}">${escapeHtml(row.short)}</small></div>`).join("")}
+          </div>
+        </section>
+        <section class="dashboard-card">
+          <div class="dashboard-card-header"><div><h2>Monthly Achievement Trend</h2><small>Average realization through September.</small></div></div>
+          <div class="kpi-trend-chart">
+            ${monthlyTrend.map((row) => `<div><strong>${row.value}%</strong><span><i style="height:${row.value}%"></i></span><small>${row.month}</small></div>`).join("")}
+          </div>
+        </section>
+      </div>
+
+      <section class="dashboard-card">
+        <div class="dashboard-card-header"><div><h2>Division Performance</h2><small>KPI completion and average achievement by division.</small></div></div>
+        <div class="table-wrap">
+          <table class="data-table kpi-performance-table">
+            <thead><tr><th>Division</th><th>Total KPI</th><th>Submitted</th><th>Approved</th><th>Average Achievement</th><th>Status</th></tr></thead>
+            <tbody>
+              ${divisions.map((row) => {
+                const tone = row.status === "On Track" ? "on-track" : row.status === "Monitor" ? "monitor" : "at-risk";
+                return `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td class="center">${row.total}</td><td class="center">${row.submitted}</td><td class="center">${row.approved}</td><td><div class="kpi-cell-progress"><div class="kpi-table-progress"><span style="width:${row.average}%"></span></div><small>${row.average}%</small></div></td><td class="center"><span class="kpi-status ${tone}">${escapeHtml(row.status)}</span></td></tr>`;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="dashboard-card">
+        <div class="dashboard-card-header"><div><h2>Approval Queue</h2><small>Submitted KPI that currently require approval.</small></div><span class="kpi-queue-count">${approvalQueue.length} pending</span></div>
+        <div class="table-wrap"><table class="data-table kpi-approval-table">
+          <thead><tr><th>KPI</th><th>Owner / Unit</th><th>KPI Type</th><th>Current Approver</th><th>Waiting Time</th><th>Action</th></tr></thead>
+          <tbody>${approvalQueue.map((row) => `<tr><td><strong>${escapeHtml(row.kpi)}</strong></td><td>${escapeHtml(row.owner)}</td><td class="center">${escapeHtml(row.type)}</td><td>${escapeHtml(row.approver)}</td><td class="center"><span class="kpi-waiting-time">${escapeHtml(row.waiting)}</span></td><td class="center"><button class="action-icon action-view" type="button" title="View KPI" aria-label="View KPI">${icon("eye")}</button></td></tr>`).join("")}</tbody>
+        </table></div>
+      </section>
     </div>
   `;
 }
